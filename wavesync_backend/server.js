@@ -22,6 +22,7 @@ import matchingRoutes from './routes/matchingRoutes.js';
 import ventureRoutes from './routes/ventureRoutes.js';
 import credentialRoutes from './routes/credentialRoutes.js';
 import networkRoutes from './routes/networkRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import errorHandler from "./middlewares/errorHandler.js";
 
 dotenv.config();
@@ -73,6 +74,7 @@ app.use('/api/matching', matchingRoutes);
 app.use('/api/venture', ventureRoutes);
 app.use('/api/credentials', credentialRoutes);
 app.use('/api/network', networkRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.get("/", (req, res) => {
   res.send("WaveSync API is running...");

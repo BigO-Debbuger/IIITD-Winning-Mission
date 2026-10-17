@@ -1026,6 +1026,65 @@ export const api = {
     }
     return res.json();
   },
+
+  // ============================================================================
+  // AI CHATBOT ASSISTANT
+  // ============================================================================
+  async sendChatMessage(payload: {
+    message: string;
+    currentPath?: string;
+    sessionId?: string;
+  }): Promise<ChatResponse> {
+    const res = await fetch(`${API_BASE}/chat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to get response from WaveSync AI Assistant.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getChatHistory(sessionId?: string): Promise<{ history: ChatMessage[] }> {
+    const query = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : '';
+    const res = await fetch(`${API_BASE}/chat/history${query}`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      return { history: [] };
+    }
+    return res.json();
+  },
+
+  async clearChatHistory(sessionId?: string): Promise<{ message: string }> {
+    const query = sessionId ? `?sessionId=${encodeURIComponent(sessionId)}` : '';
+    const res = await fetch(`${API_BASE}/chat/history${query}`, {
+      method: 'DELETE',
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to clear chat history.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getChatStatus(): Promise<{ isConfigured: boolean; provider: string; model: string }> {
+    try {
+      const res = await fetch(`${API_BASE}/chat/status`);
+      if (!res.ok) {
+        return { isConfigured: false, provider: 'gemini', model: 'gemini-1.5-flash' };
+      }
+      return res.json();
+    } catch {
+      return { isConfigured: false, provider: 'gemini', model: 'gemini-1.5-flash' };
+    }
+  },
 };
 
 // ============================================================================
@@ -1136,4 +1195,27 @@ export interface NetworkOutcome {
   user?: { id: string; fullName: string; role: string };
   partner?: { id: string; fullName: string; role: string };
 }
+
+export interface ChatAction {
+  label: string;
+  path: string;
+  type: 'navigate';
+}
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  actions?: ChatAction[];
+  timestamp?: string;
+}
+
+export interface ChatResponse {
+  reply: string;
+  actions: ChatAction[];
+  provider: string;
+  isLiveLLM: boolean;
+  history: ChatMessage[];
+}
+
 

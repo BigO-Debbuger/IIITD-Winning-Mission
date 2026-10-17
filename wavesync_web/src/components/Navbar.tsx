@@ -1,24 +1,19 @@
 // wavesync_web/src/components/Navbar.tsx
 import React, { useState } from 'react';
-import { NavLink, Link, useNavigate } from 'react-router-dom';
+import { NavLink, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User as UserIcon, LogOut, Menu, X, Users, MessageSquare } from 'lucide-react';
+import { User as UserIcon, LogOut, Menu, X, MessageSquare, Users } from 'lucide-react';
 
-export const Navbar: React.FC<{
-  activeTab?: string;
-  onSelectTab?: (tab: string) => void;
-  onOpenNetwork?: () => void;
-}> = () => {
+export const Navbar: React.FC = () => {
   const { user, isAuthenticated, logout, openAuthModal } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
 
   const closeMobile = () => setMobileMenuOpen(false);
 
   return (
     <div className="wavesync-navbar-wrap">
       <nav className="wavesync-navbar">
-        {/* Brand Logo */}
+        {/* Brand Logo -> HOME */}
         <Link
           to="/"
           onClick={() => {
@@ -40,14 +35,6 @@ export const Navbar: React.FC<{
               end
             >
               Home
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/graph"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              3D Graph
             </NavLink>
           </li>
           <li>
@@ -82,105 +69,97 @@ export const Navbar: React.FC<{
               Build-to-Earn
             </NavLink>
           </li>
+          <li>
+            <NavLink
+              to="/messages"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              Messages
+            </NavLink>
+          </li>
         </ul>
 
         {/* Right Actions */}
         <div className="nav-actions">
-          {isAuthenticated ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              <NavLink
-                to="/messages"
-                className={({ isActive }) => `btn ${isActive ? 'btn-dark' : 'btn-outline'}`}
-                style={{
-                  minHeight: 36,
-                  padding: '0 12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  flexShrink: 0,
-                }}
-                title="Direct Messages"
-              >
-                <MessageSquare size={14} />
-                <span>Messages</span>
-              </NavLink>
-
-              <Link
-                to="/profile"
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  padding: '4px 10px 4px 6px',
-                  borderRadius: 'var(--radius-pill)',
-                  border: '1.5px solid rgba(5, 2, 11, 0.16)',
-                  background: 'rgba(255, 255, 255, 0.65)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  boxShadow: 'var(--shadow-tactile-sm)',
-                  whiteSpace: 'nowrap',
-                  flexShrink: 0,
-                  cursor: 'pointer',
-                  color: 'inherit',
-                  textDecoration: 'none',
-                }}
-                title="View & Edit Profile"
-              >
-                <div
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: '50%',
-                    background: 'var(--accent-lime)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    border: '1px solid var(--border-strong)',
-                    flexShrink: 0,
-                  }}
-                >
-                  <UserIcon size={13} />
-                </div>
-                <span>{user?.fullName}</span>
-                <span
-                  style={{
-                    fontSize: '0.66rem',
-                    fontWeight: 800,
-                    textTransform: 'uppercase',
-                    padding: '2px 6px',
-                    borderRadius: 999,
-                    background: 'rgba(5, 2, 11, 0.06)',
-                    color: 'var(--ink-muted)',
-                  }}
-                >
-                  {user?.role}
-                </span>
-              </Link>
-
-              <button
-                onClick={logout}
-                className="btn btn-outline"
-                style={{
-                  minHeight: 34,
-                  width: 34,
-                  padding: 0,
-                  borderRadius: '50%',
-                  display: 'grid',
-                  placeItems: 'center',
-                  background: 'rgba(255, 255, 255, 0.65)',
-                  backdropFilter: 'blur(10px)',
-                  WebkitBackdropFilter: 'blur(10px)',
-                  border: '1.5px solid rgba(5, 2, 11, 0.16)',
-                  flexShrink: 0,
-                }}
-                title="Sign Out"
-              >
-                <LogOut size={14} />
-              </button>
+          {/* Profile Control */}
+          <Link
+            to="/profile"
+            className="btn btn-outline"
+            style={{
+              minHeight: 36,
+              padding: isAuthenticated ? '4px 10px 4px 6px' : '0 12px',
+              borderRadius: 'var(--radius-pill)',
+              border: '1.5px solid rgba(5, 2, 11, 0.16)',
+              background: 'rgba(255, 255, 255, 0.65)',
+              backdropFilter: 'blur(10px)',
+              WebkitBackdropFilter: 'blur(10px)',
+              fontSize: '0.8rem',
+              fontWeight: 800,
+              boxShadow: 'var(--shadow-tactile-sm)',
+              whiteSpace: 'nowrap',
+              flexShrink: 0,
+              cursor: 'pointer',
+              color: 'inherit',
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+            title="My Network Profile"
+          >
+            <div
+              style={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                background: 'var(--accent-lime)',
+                display: 'grid',
+                placeItems: 'center',
+                border: '1px solid var(--border-strong)',
+                flexShrink: 0,
+              }}
+            >
+              <UserIcon size={13} />
             </div>
+            <span>{isAuthenticated && user?.fullName ? user.fullName : 'Profile'}</span>
+            {isAuthenticated && user?.role && (
+              <span
+                style={{
+                  fontSize: '0.66rem',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  padding: '2px 6px',
+                  borderRadius: 999,
+                  background: 'rgba(5, 2, 11, 0.06)',
+                  color: 'var(--ink-muted)',
+                }}
+              >
+                {user.role}
+              </span>
+            )}
+          </Link>
+
+          {isAuthenticated ? (
+            <button
+              onClick={logout}
+              className="btn btn-outline"
+              style={{
+                minHeight: 34,
+                width: 34,
+                padding: 0,
+                borderRadius: '50%',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'rgba(255, 255, 255, 0.65)',
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+                border: '1.5px solid rgba(5, 2, 11, 0.16)',
+                flexShrink: 0,
+              }}
+              title="Sign Out"
+            >
+              <LogOut size={14} />
+            </button>
           ) : (
             <>
               <button
@@ -250,13 +229,12 @@ export const Navbar: React.FC<{
         >
           {[
             { label: 'Home', path: '/' },
-            { label: '3D Graph', path: '/graph' },
             { label: 'Opportunities', path: '/opportunities' },
             { label: 'Ventures', path: '/ventures' },
             { label: 'Network', path: '/network' },
             { label: 'Build-to-Earn', path: '/build-to-earn' },
             { label: 'Messages', path: '/messages' },
-            ...(isAuthenticated ? [{ label: 'Profile', path: '/profile' }] : []),
+            { label: 'Profile', path: '/profile' },
           ].map((item) => (
             <Link
               key={item.path}

@@ -23,7 +23,7 @@ export const Footer: React.FC = () => {
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10, padding: 0 }}>
               <li><Link to="/#problem">Problem Analysis</Link></li>
               <li><Link to="/#ecosystem">Connected Pathways</Link></li>
-              <li><Link to="/graph">3D Opportunity Graph</Link></li>
+              <li><Link to="/#graph">3D Opportunity Graph</Link></li>
               <li><Link to="/opportunities">Open Opportunities</Link></li>
               <li><Link to="/ventures">Founder Matchmaking</Link></li>
               <li><Link to="/build-to-earn">Build-to-Earn Proofs</Link></li>

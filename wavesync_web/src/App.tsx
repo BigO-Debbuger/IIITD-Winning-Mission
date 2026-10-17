@@ -15,6 +15,7 @@ import { NetworkPage } from './pages/NetworkPage';
 import { BuildToEarnPage } from './pages/BuildToEarnPage';
 import { MessagesPage } from './pages/MessagesPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { WaveSyncAssistant } from './components/chat/WaveSyncAssistant';
 
 export const App: React.FC = () => {
   return (
@@ -55,6 +56,7 @@ export const App: React.FC = () => {
             </Routes>
           </main>
           <AuthModal />
+          <WaveSyncAssistant />
         </div>
       </BrowserRouter>
     </AuthProvider>
