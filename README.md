@@ -5,6 +5,8 @@
 
 WaveSync is an institutional platform designed to eliminate static alumni directories, resume inflation, and opaque hiring pipelines. Built on PostgreSQL, Prisma ORM, Node.js/Express, React 18 (Vite + TypeScript), React Three Fiber, and cryptographic Ed25519 digital signatures with SHA-256 evidence digests, WaveSync bridges undergraduate talent, startup founders, verified alumni mentors, faculty advisors, corporate recruiters, and university leadership into a unified high-trust network.
 
+![WaveSync Platform Hero - Where Founders Meet Builders & Proof Speaks](./images/hero_section.jpeg)
+
 ---
 
 ## Table of Contents
@@ -24,6 +26,7 @@ WaveSync is an institutional platform designed to eliminate static alumni direct
 - [Pre-Seeded Demo Accounts](#pre-seeded-demo-accounts)
 - [Automated Testing & Verification](#automated-testing--verification)
 - [REST API Reference Ledger](#rest-api-reference-ledger)
+- [Platform Integrity & Deployment Telemetry](#platform-integrity--deployment-telemetry)
 
 ---
 
@@ -90,6 +93,8 @@ WaveSync is built as a modular monorepo containing a high-performance web applic
 
 ## The 6-Stakeholder Ecosystem Network
 
+![WaveSync 6-Stakeholder Unified Network](./images/stakeholders_matrix.jpeg)
+
 WaveSync establishes a closed-loop institutional lifecycle across six distinct user segments:
 
 | Stakeholder | Focus Domain | Core Pathways & System Capabilities | Action in Platform |
@@ -105,6 +110,8 @@ WaveSync establishes a closed-loop institutional lifecycle across six distinct u
 
 ## Interactive 3D Opportunity Graph
 
+![WaveSync Real-Time 3D Opportunity Graph](./images/opportunity_graph_3d.jpeg)
+
 The frontend includes an interactive WebGL 3D force-directed opportunity graph rendered using Three.js, React Three Fiber (`@react-three/fiber`), and `@react-three/drei`.
 
 ### Key Graph Features
@@ -116,6 +123,8 @@ The frontend includes an interactive WebGL 3D force-directed opportunity graph r
 ---
 
 ## Build-to-Earn Cryptographic Proof Protocol
+
+![WaveSync Build-to-Earn Cryptographic Proof Ledger](./images/build_to_earn_ledger.jpeg)
 
 The Build-to-Earn (BTE) ledger solves the verification bottleneck by replacing self-reported bullet points with cryptographically signed, peer-reviewed engineering artifacts.
 
@@ -196,6 +205,8 @@ The Venture Architect breaks high-level ideas into three execution stages:
 ---
 
 ## Opportunities & Grants Pipeline
+
+![WaveSync Current Opportunities Directory & Grants](./images/opportunities_directory.jpeg)
 
 The opportunities directory consolidates three income and career pathways:
 
@@ -568,6 +579,14 @@ npm test
 | `POST` | `/api/collabs/:id/apply` | Student | Apply for a specific venture team role |
 | `POST` | `/api/matching/cofounders`| Authenticated | Compute 4-pillar complementary gap match |
 | `GET` | `/api/graph/data` | Public | Fetch 3D opportunity graph node & link topology |
+
+---
+
+## Platform Integrity & Deployment Telemetry
+
+![WaveSync Platform Verification & System Status](./images/platform_footer.jpeg)
+
+The platform features continuous real-time telemetry across PostgreSQL, Express API clusters, and React Three Fiber graphics pipelines, maintaining cryptographic auditability, health monitoring, and tamper resistance at every institutional layer.
 
 ---
 
