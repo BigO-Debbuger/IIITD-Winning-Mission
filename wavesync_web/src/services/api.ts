@@ -1,6 +1,8 @@
 // wavesync_web/src/services/api.ts
 
-const API_BASE = '/api';
+const envApiUrl = (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_API_URL;
+const rawBase = envApiUrl ? String(envApiUrl).replace(/\/+$/, '') : '';
+const API_BASE = rawBase ? `${rawBase}/api` : '/api';
 
 export interface User {
   id: string;
