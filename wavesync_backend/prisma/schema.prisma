@@ -31,6 +31,15 @@ model User {
   companyDetails    Json?
   grantedAccess     Json?     // List of User IDs with granted access
 
+  // Core networking & profile extension fields (backward-compatible)
+  institution           String?   @default("IIIT Delhi")
+  graduationYear        Int?
+  isAvailableForMentoring Boolean @default(true)
+  willingToRefer        Boolean   @default(true)
+  skills                String[]  @default([])
+  interests             String[]  @default([])
+  location              String?   @default("Delhi, India")
+
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 
@@ -49,6 +58,15 @@ model User {
   // Build-to-Earn relationships
   submissions           Submission[]          @relation("AuthorSubmissions")
   reviewsGiven          SubmissionReview[]    @relation("ReviewerReviews")
+
+  // Alumni Networking relationships
+  connectionsSent       Connection[]          @relation("SentConnections")
+  connectionsReceived   Connection[]          @relation("ReceivedConnections")
+  conversationsAsUser1  Conversation[]        @relation("ConversationUser1")
+  conversationsAsUser2  Conversation[]        @relation("ConversationUser2")
+  messagesSent          Message[]             @relation("SentMessages")
+  outcomesCreated       NetworkOutcome[]      @relation("UserOutcomes")
+  outcomesReceived      NetworkOutcome[]      @relation("PartnerOutcomes")
 
   @@index([role])
 }
@@ -126,15 +144,17 @@ model Application {
 // 5. MENTORSHIP REQUESTS
 // ==============================================================================
 model Mentorship {
-  id        String   @id @default(uuid())
-  studentId String
-  student   User     @relation("StudentMentorships", fields: [studentId], references: [id], onDelete: Cascade)
-  alumniId  String
-  alumni    User     @relation("AlumniMentorships", fields: [alumniId], references: [id], onDelete: Cascade)
-  message   String
-  status    String   @default("pending") // 'pending', 'accepted', 'rejected'
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(uuid())
+  studentId    String
+  student      User     @relation("StudentMentorships", fields: [studentId], references: [id], onDelete: Cascade)
+  alumniId     String
+  alumni       User     @relation("AlumniMentorships", fields: [alumniId], references: [id], onDelete: Cascade)
+  message      String
+  topic        String?  @default("Career & Technical Mentorship")
+  outcomeNotes String?
+  status       String   @default("pending") // 'pending', 'accepted', 'rejected'
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@unique([studentId, alumniId])
   @@index([studentId])
@@ -269,3 +289,84 @@ model SubmissionReview {
   @@index([submissionId])
   @@index([reviewerId])
 }
+
+// ==============================================================================
+// 11. ALUMNI NETWORKING: CONNECTIONS
+// ==============================================================================
+model Connection {
+  id          String   @id @default(uuid())
+  requesterId String
+  requester   User     @relation("SentConnections", fields: [requesterId], references: [id], onDelete: Cascade)
+  recipientId String
+  recipient   User     @relation("ReceivedConnections", fields: [recipientId], references: [id], onDelete: Cascade)
+  status      String   @default("pending") // 'pending', 'accepted', 'declined'
+  message     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([requesterId, recipientId])
+  @@index([requesterId])
+  @@index([recipientId])
+  @@index([status])
+}
+
+// ==============================================================================
+// 12. ALUMNI NETWORKING: CONVERSATIONS & DIRECT MESSAGING
+// ==============================================================================
+model Conversation {
+  id             String           @id @default(uuid())
+  user1Id        String
+  user1          User             @relation("ConversationUser1", fields: [user1Id], references: [id], onDelete: Cascade)
+  user2Id        String
+  user2          User             @relation("ConversationUser2", fields: [user2Id], references: [id], onDelete: Cascade)
+  lastMessageAt  DateTime         @default(now())
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  messages       Message[]
+  outcomes       NetworkOutcome[]
+
+  @@unique([user1Id, user2Id])
+  @@index([user1Id])
+  @@index([user2Id])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  content        String
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
+// ==============================================================================
+// 13. ALUMNI NETWORKING: OUTCOME TRACKING
+// ==============================================================================
+model NetworkOutcome {
+  id             String        @id @default(uuid())
+  userId         String
+  user           User          @relation("UserOutcomes", fields: [userId], references: [id], onDelete: Cascade)
+  partnerId      String
+  partner        User          @relation("PartnerOutcomes", fields: [partnerId], references: [id], onDelete: Cascade)
+  type           String        // 'mentorship_completed', 'referral_received', 'job_offer', 'collab_started', 'project_shipped', 'startup_intro'
+  title          String
+  description    String?
+  status         String        @default("verified") // 'reported', 'verified'
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([partnerId])
+  @@index([type])
+}
+

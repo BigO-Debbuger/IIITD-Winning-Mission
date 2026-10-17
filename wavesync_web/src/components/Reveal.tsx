@@ -44,14 +44,15 @@ export const Reveal: React.FC<RevealProps> = ({
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             setIsVisible(true);
-            // Animate once by default as requested in Dropp motion spec
-            if (ref.current) observer.unobserve(ref.current);
+          } else {
+            // Reset when scrolled out of view so animation plays every time on scroll up or down
+            setIsVisible(false);
           }
         });
       },
       {
-        threshold,
-        rootMargin: '0px 0px -40px 0px',
+        threshold: Math.min(threshold, 0.08),
+        rootMargin: '0px 0px -25px 0px',
       }
     );
 
@@ -93,10 +94,10 @@ export const Reveal: React.FC<RevealProps> = ({
     opacity: prefersReducedMotion ? 1 : isVisible ? 1 : 0,
     transform: transformStyle,
     transitionProperty: prefersReducedMotion ? 'none' : 'opacity, transform',
-    transitionDuration: prefersReducedMotion ? '0ms' : `${duration}ms`,
-    transitionDelay: prefersReducedMotion ? '0ms' : `${computedDelay}ms`,
+    transitionDuration: prefersReducedMotion ? '0ms' : isVisible ? `${duration}ms` : '200ms',
+    transitionDelay: prefersReducedMotion ? '0ms' : isVisible ? `${computedDelay}ms` : '0ms',
     transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
-    willChange: isVisible ? 'auto' : 'opacity, transform',
+    willChange: 'opacity, transform',
   };
 
   return (

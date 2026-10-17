@@ -735,4 +735,346 @@ export const api = {
     }
     return res.json();
   },
+
+  // ============================================================================
+  // CORE ALUMNI NETWORKING & PROFESSIONAL CONNECTIONS
+  // ============================================================================
+  async getPeople(params?: Record<string, string | number | boolean>): Promise<{
+    people: PersonProfile[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
+    const query = new URLSearchParams();
+    if (params) {
+      Object.entries(params).forEach(([key, val]) => {
+        if (val !== undefined && val !== null && val !== '') {
+          query.append(key, String(val));
+        }
+      });
+    }
+    const res = await fetch(`${API_BASE}/network/people?${query.toString()}`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load people directory.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getPersonProfile(id: string): Promise<{ person: PersonProfile }> {
+    const res = await fetch(`${API_BASE}/network/people/${id}`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to fetch person profile.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async updateNetworkProfile(data: Partial<PersonProfile>): Promise<{ user: PersonProfile }> {
+    const res = await fetch(`${API_BASE}/network/profile`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to update network profile.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async sendConnectionRequest(recipientId: string, message?: string): Promise<{ connection: ConnectionRequest }> {
+    const res = await fetch(`${API_BASE}/network/connections`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ recipientId, message }),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to send connection request.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getAcceptedConnections(): Promise<{ connections: AcceptedConnection[] }> {
+    const res = await fetch(`${API_BASE}/network/connections`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load connections.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getConnectionRequests(): Promise<{ incoming: ConnectionRequest[]; outgoing: ConnectionRequest[] }> {
+    const res = await fetch(`${API_BASE}/network/connections/requests`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load connection requests.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async respondToConnectionRequest(id: string, action: 'accept' | 'decline'): Promise<{ connection: ConnectionRequest }> {
+    const res = await fetch(`${API_BASE}/network/connections/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ action }),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to respond to connection request.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async sendMentorshipRequest(mentorId: string, topic: string, message?: string): Promise<{ mentorship: MentorshipRequest }> {
+    const res = await fetch(`${API_BASE}/network/mentorship-requests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ mentorId, topic, message }),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to send mentorship request.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getMyMentorshipRequests(): Promise<{ sent: MentorshipRequest[]; received: MentorshipRequest[] }> {
+    const res = await fetch(`${API_BASE}/network/mentorship-requests`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load mentorship requests.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async respondToMentorshipRequest(id: string, status: 'accepted' | 'declined'): Promise<{ mentorship: MentorshipRequest }> {
+    const res = await fetch(`${API_BASE}/network/mentorship-requests/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ status }),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to respond to mentorship request.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getConversations(): Promise<{ conversations: Conversation[] }> {
+    const res = await fetch(`${API_BASE}/network/conversations`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load conversations.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getConversationMessages(id: string): Promise<{ messages: Message[]; conversation: Conversation }> {
+    const res = await fetch(`${API_BASE}/network/conversations/${id}/messages`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load messages.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async sendMessage(conversationId: string, content: string): Promise<{ message: Message }> {
+    const res = await fetch(`${API_BASE}/network/conversations/${conversationId}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify({ content }),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to send message.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getExplainableRecommendations(): Promise<{ recommendations: ExplainableRecommendation[]; hasProfileData: boolean }> {
+    const res = await fetch(`${API_BASE}/network/recommendations`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load recommendations.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async recordOutcome(payload: {
+    partnerId: string;
+    type: string;
+    title: string;
+    description?: string;
+  }): Promise<{ outcome: NetworkOutcome }> {
+    const res = await fetch(`${API_BASE}/network/outcomes`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeader(),
+      },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to record networking outcome.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
+
+  async getOutcomes(): Promise<{ userOutcomes: NetworkOutcome[]; outcomes: NetworkOutcome[]; totalEcosystemOutcomes: number }> {
+    const res = await fetch(`${API_BASE}/network/outcomes`, {
+      headers: getAuthHeader(),
+    });
+    if (!res.ok) {
+      const msg = await extractErrorMessage(res, 'Failed to load networking outcomes.');
+      throw new Error(msg);
+    }
+    return res.json();
+  },
 };
+
+// ============================================================================
+// NETWORKING TYPES
+// ============================================================================
+export interface PersonProfile {
+  id: string;
+  fullName: string;
+  email?: string;
+  role: 'student' | 'alumni' | 'company' | 'admin' | string;
+  headline?: string;
+  bio?: string;
+  profileImage?: string;
+  institution?: string;
+  graduationYear?: number;
+  isAvailableForMentoring?: boolean;
+  willingToRefer?: boolean;
+  skills?: string[];
+  interests?: string[];
+  location?: string;
+  isVerified?: boolean;
+  isProfileComplete?: boolean;
+  connectionStatus?: 'none' | 'pending_sent' | 'pending_received' | 'connected' | 'declined';
+  connectionId?: string | null;
+  isSelf?: boolean;
+  projects?: Array<{ id: string; title: string; description: string; technologies: string[]; github?: string; live?: string }>;
+  submissions?: Array<{ id: string; title: string; proofType: string; proofUrl: string; createdAt: string }>;
+  collabPosts?: Array<{ id: string; title: string; type: string; roles: string[]; createdAt: string }>;
+  _count?: { projects: number; submissions: number; collabPosts: number };
+}
+
+export interface ConnectionRequest {
+  id: string;
+  requesterId: string;
+  recipientId: string;
+  status: 'pending' | 'accepted' | 'declined';
+  message?: string;
+  createdAt: string;
+  requester?: { id: string; fullName: string; role: string; headline?: string; profileImage?: string; institution?: string };
+  recipient?: { id: string; fullName: string; role: string; headline?: string; profileImage?: string; institution?: string };
+}
+
+export interface AcceptedConnection {
+  connectionId: string;
+  connectedAt: string;
+  partner: { id: string; fullName: string; role: string; headline?: string; profileImage?: string; institution?: string };
+  otherUser?: { id: string; fullName: string; role: string; headline?: string; profileImage?: string; institution?: string };
+}
+
+export interface MentorshipRequest {
+  id: string;
+  studentId: string;
+  alumniId: string;
+  topic?: string;
+  message?: string;
+  status: 'pending' | 'accepted' | 'declined';
+  outcomeNotes?: string;
+  createdAt: string;
+  student?: { id: string; fullName: string; role: string; headline?: string; profileImage?: string; institution?: string };
+  alumni?: { id: string; fullName: string; role: string; headline?: string; profileImage?: string; institution?: string };
+}
+
+export interface Conversation {
+  id: string;
+  user1Id: string;
+  user2Id: string;
+  lastMessageAt: string;
+  partner: { id: string; fullName: string; role: string; headline?: string; profileImage?: string };
+  unreadCount?: number;
+  lastMessage?: { id: string; content: string; createdAt: string; senderId: string };
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  content: string;
+  createdAt: string;
+  sender: { id: string; fullName: string; role: string; profileImage?: string };
+}
+
+export interface ExplainableRecommendation {
+  id: string;
+  fullName: string;
+  role: string;
+  headline?: string;
+  institution?: string;
+  skills: string[];
+  interests?: string[];
+  isAvailableForMentoring: boolean;
+  willingToRefer?: boolean;
+  score: number;
+  matchScore: number;
+  reasons: string[];
+  explanation: string;
+}
+
+export interface NetworkOutcome {
+  id: string;
+  userId: string;
+  partnerId: string;
+  type: string;
+  outcomeType?: string;
+  title: string;
+  description?: string;
+  status: string;
+  createdAt: string;
+  user?: { id: string; fullName: string; role: string };
+  partner?: { id: string; fullName: string; role: string };
+}
+

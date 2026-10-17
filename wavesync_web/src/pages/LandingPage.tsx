@@ -36,7 +36,9 @@ import {
   Compass,
 } from 'lucide-react';
 
-export const LandingPage: React.FC = () => {
+export const LandingPage: React.FC<{
+  onOpenNetwork?: (tab?: any, targetId?: string | null) => void;
+}> = ({ onOpenNetwork }) => {
   const { user, openAuthModal, isAuthenticated } = useAuth();
   const [jobs, setJobs] = useState<JobOpportunity[]>([]);
   const [collabs, setCollabs] = useState<CollabProject[]>([]);
@@ -175,6 +177,19 @@ export const LandingPage: React.FC = () => {
             >
               <Sparkles size={16} /> AI Venture Architect
             </button>
+            <button
+              onClick={() => onOpenNetwork ? onOpenNetwork('directory') : undefined}
+              className="btn btn-outline"
+              style={{
+                minHeight: 52,
+                padding: '0 24px',
+                fontSize: '1rem',
+                background: 'var(--accent-mint)',
+                fontWeight: 900,
+              }}
+            >
+              <Users size={16} /> Alumni & Peer Network
+            </button>
             <a
               href="#graph"
               className="btn btn-dark"
@@ -186,6 +201,38 @@ export const LandingPage: React.FC = () => {
 
           {/* Tactile Demand Showcase Cards */}
           <div className="hero-cards-grid hero-enter-5">
+            <div
+              className="tactile-card"
+              style={{ background: '#FFFFFF', cursor: 'pointer' }}
+              onClick={() => onOpenNetwork ? onOpenNetwork('directory') : undefined}
+            >
+              <span className="tactile-card-tag" style={{ background: '#EFFDF5', color: '#047857' }}>
+                Alumni Network
+              </span>
+              <h3>Verified Alumni & Peer Directory</h3>
+              <p>
+                Discover and connect with alumni from your university, request 1:1 mentorship sessions,
+                gain internal company referrals, and collaborate on real-world projects.
+              </p>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginTop: 18,
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Users size={16} color="var(--accent-mint)" /> Mentorship & Referrals Active
+                </span>
+                <span style={{ color: 'var(--accent-mint)', textDecoration: 'underline' }}>
+                  Explore Network &rarr;
+                </span>
+              </div>
+            </div>
+
             <div
               className="tactile-card"
               style={{ background: '#FFFFFF', cursor: 'pointer' }}
@@ -218,7 +265,14 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="tactile-card" style={{ background: '#FFFFFF' }}>
+            <div
+              className="tactile-card"
+              style={{ background: '#FFFFFF', cursor: 'pointer' }}
+              onClick={() => {
+                if (!isAuthenticated) openAuthModal('login');
+                else setReviewQueueModalOpen(true);
+              }}
+            >
               <span className="tactile-card-tag" style={{ background: '#EFFDF5', color: '#047857' }}>
                 Build-to-Earn
               </span>
@@ -231,17 +285,26 @@ export const LandingPage: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  justifyContent: 'space-between',
                   marginTop: 18,
                   fontSize: '0.8rem',
                   fontWeight: 800,
                 }}
               >
-                <ShieldCheck size={16} color="var(--accent-mint)" /> Ed25519 Signing Layer Active
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <ShieldCheck size={16} color="var(--accent-mint)" /> Ed25519 Signing Layer Active
+                </span>
+                <span style={{ color: 'var(--accent-mint)', textDecoration: 'underline' }}>
+                  Review Queue &rarr;
+                </span>
               </div>
             </div>
 
-            <div className="tactile-card" style={{ background: '#FFFFFF' }}>
+            <div
+              className="tactile-card"
+              style={{ background: '#FFFFFF', cursor: 'pointer' }}
+              onClick={() => scrollToSection('bounties')}
+            >
               <span className="tactile-card-tag" style={{ background: '#FDF4FF', color: '#7E22CE' }}>
                 Capital & Grants
               </span>
@@ -254,13 +317,18 @@ export const LandingPage: React.FC = () => {
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 8,
+                  justifyContent: 'space-between',
                   marginTop: 18,
                   fontSize: '0.8rem',
                   fontWeight: 800,
                 }}
               >
-                <Zap size={16} color="var(--accent-violet)" /> Average Grant Decision in 48h
+                <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Zap size={16} color="var(--accent-violet)" /> Average Grant Decision in 48h
+                </span>
+                <span style={{ color: 'var(--accent-violet)', textDecoration: 'underline' }}>
+                  Browse Bounties &rarr;
+                </span>
               </div>
             </div>
           </div>
@@ -268,7 +336,17 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* 2. THE PROBLEM (PS 1: ALUMNI NETWORK & PROFESSIONAL CONNECTIONS) */}
-      <ProblemSection onExploreGraph={() => scrollToSection('graph')} />
+      <ProblemSection
+        onExploreGraph={() => scrollToSection('graph')}
+        onOpenNetwork={(tab) => onOpenNetwork ? onOpenNetwork(tab) : scrollToSection('directory')}
+        onOpenCoFounders={() => setCofounderMatchingModalOpen(true)}
+        onOpenReviewQueue={() => {
+          if (!isAuthenticated) openAuthModal('login');
+          else setReviewQueueModalOpen(true);
+        }}
+        onOpenBounties={() => scrollToSection('bounties')}
+        onOpenEcosystem={() => scrollToSection('ecosystem')}
+      />
 
       {/* 3. THE CONNECTED ECOSYSTEM (6 STAKEHOLDER PATHWAYS) */}
       <EcosystemSection

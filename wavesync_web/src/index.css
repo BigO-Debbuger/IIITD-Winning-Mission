@@ -36,7 +36,7 @@
   --shadow-elevation: 0 24px 60px rgba(5, 2, 11, 0.12);
 
   /* Typography */
-  --font-sans: "Instrument Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: "Plus Jakarta Sans", "Instrument Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-serif: "Instrument Serif", Georgia, "Times New Roman", serif;
   --font-mono: "JetBrains Mono", Menlo, Monaco, Consolas, monospace;
 
@@ -133,56 +133,67 @@ button {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  width: min(1140px, 100%);
-  min-height: 62px;
-  padding: 8px 10px 8px 18px;
-  border: 1px solid rgba(5, 2, 11, 0.16);
+  gap: 16px;
+  width: min(1280px, calc(100vw - 32px));
+  min-height: 56px;
+  padding: 6px 14px 6px 16px;
+  box-sizing: border-box;
+  border: 1.5px solid rgba(5, 2, 11, 0.12);
   border-radius: var(--radius-pill);
-  background: rgba(255, 248, 240, 0.78);
-  backdrop-filter: blur(24px) saturate(1.2);
-  -webkit-backdrop-filter: blur(24px) saturate(1.2);
-  box-shadow: 0 16px 42px rgba(5, 2, 11, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  background: rgba(255, 250, 242, 0.52);
+  backdrop-filter: blur(20px) saturate(1.5);
+  -webkit-backdrop-filter: blur(20px) saturate(1.5);
+  box-shadow: 0 12px 36px rgba(5, 2, 11, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
 }
 
 .brand-badge {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 1.15rem;
+  gap: 8px;
+  font-size: 1.1rem;
   font-weight: 900;
   letter-spacing: -0.03em;
   color: var(--ink);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .brand-mark {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  background: var(--ink);
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: rgba(5, 2, 11, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--accent-mint);
   display: grid;
   place-items: center;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 900;
   border: 1.5px solid var(--border-strong);
+  flex-shrink: 0;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 16px;
   list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-shrink: 1;
 }
 
 .nav-link {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: 750;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--ink-secondary);
   transition: color 0.15s ease, transform 0.15s ease;
   padding: 6px 4px;
+  white-space: nowrap !important;
 }
 
 .nav-link:hover {
@@ -193,7 +204,8 @@ button {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 /* Tactile Buttons */
@@ -358,9 +370,21 @@ button {
 /* Hero Cards / Tactile Demand Showcase */
 .hero-cards-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
   margin-top: 40px;
+}
+
+@media (max-width: 1200px) {
+  .hero-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .tactile-card {
@@ -786,13 +810,16 @@ button {
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .nav-links {
     display: none;
   }
   #mobile-nav-toggle {
     display: inline-flex !important;
   }
+}
+
+@media (max-width: 768px) {
   .hero-title {
     font-size: clamp(2.5rem, 11vw, 4rem);
   }
@@ -1020,59 +1047,111 @@ button {
 /* Section 2: Problem Statement Grid */
 .problem-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+
+@media (max-width: 1024px) {
+  .problem-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .problem-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .problem-card {
   background: #FFFFFF;
   border: 2px solid var(--border-strong);
   border-radius: var(--radius-lg);
-  padding: 26px 24px;
+  padding: 24px;
   box-shadow: var(--shadow-tactile);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
+  transition: transform 0.22s ease, box-shadow 0.22s ease;
+  min-height: 290px;
 }
 
-.problem-card-num {
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  font-weight: 800;
-  color: var(--accent-coral);
-  margin-bottom: 12px;
+.problem-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-tactile-lg);
+}
+
+.problem-card-header {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.problem-card-index {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ink-muted);
+  letter-spacing: 0.06em;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-subtle);
+  background: var(--paper-deep);
 }
 
 .problem-card-title {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 850;
   color: var(--ink);
   margin-bottom: 10px;
-  line-height: 1.25;
+  line-height: 1.22;
+  letter-spacing: -0.025em;
 }
 
 .problem-card-body {
   font-size: 0.92rem;
   color: var(--ink-muted);
   line-height: 1.55;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-.problem-card-solution {
-  background: var(--paper-deep);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 10px 14px;
-  font-size: 0.82rem;
-  font-weight: 750;
-  color: var(--ink);
+.problem-card-footer {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-subtle);
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin-top: auto;
   gap: 8px;
+}
+
+.problem-card-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.problem-card-action {
+  font-weight: 850;
+  text-decoration: underline;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.problem-card-action:hover {
+  opacity: 0.75;
+  transform: translateX(2px);
 }
 
 /* Section 3: The Connected Ecosystem */
