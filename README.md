@@ -1,4 +1,4 @@
-# 🚀 Referloom - AI-Powered Career Networking & Referral Ecosystem
+# 🚀 WaveSync - AI-Powered Career Networking & Referral Ecosystem
 
 <p align="center">
   <strong>Bridging the gap between students, alumni, startups, and recruiters through AI-driven career intelligence and referral-based hiring.</strong>
@@ -16,9 +16,9 @@
 
 # 📌 Overview
 
-Referloom is an AI-powered career technology platform designed to transform how students connect with alumni, mentors, startups, and recruiters.
+WaveSync is an AI-powered career technology platform designed to transform how students connect with alumni, mentors, startups, and recruiters.
 
-Traditional job portals often leave students competing among thousands of applicants with little guidance, networking opportunities, or referral support. Referloom addresses this challenge by creating a referral-first ecosystem where university alumni can mentor and refer students while AI assists users in identifying career opportunities that align with their skills, goals, and profile strength.
+Traditional job portals often leave students competing among thousands of applicants with little guidance, networking opportunities, or referral support. WaveSync addresses this challenge by creating a referral-first ecosystem where university alumni can mentor and refer students while AI assists users in identifying career opportunities that align with their skills, goals, and profile strength.
 
 The platform combines career guidance, mentorship, AI-powered profile analysis, job matching, and referral networking into a single unified experience.
 
@@ -35,13 +35,13 @@ At the same time:
 * Students often don't know how competitive their profiles are.
 * Existing job portals focus on applications rather than relationships.
 
-Referloom solves these problems by connecting all stakeholders through a collaborative and intelligent ecosystem.
+WaveSync solves these problems by connecting all stakeholders through a collaborative and intelligent ecosystem.
 
 ---
 
 # 💡 Solution
 
-Referloom enables:
+WaveSync enables:
 
 ✅ Students to build stronger career profiles
 
@@ -109,7 +109,7 @@ Helping users become more competitive candidates.
 
 ## 🎓 Alumni Referral Network
 
-The core innovation behind Referloom.
+The core innovation behind WaveSync.
 
 Students can:
 
@@ -266,13 +266,13 @@ Community & Collaboration Module
 ## Clone Repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/referloom.git
+git clone https://github.com/YOUR_USERNAME/wavesync.git
 ```
 
 ## Navigate Into Project
 
 ```bash
-cd referloom
+cd wavesync
 ```
 
 ## Install Dependencies
@@ -326,7 +326,7 @@ npm run build
 
 # 📊 Expected Impact
 
-Referloom aims to:
+WaveSync aims to:
 
 * Increase employability among students
 * Strengthen alumni engagement
@@ -352,9 +352,9 @@ This project is shared for educational, research, and portfolio purposes.
 
 ---
 
-# ⭐ Why Referloom?
+# ⭐ Why WaveSync?
 
-Referloom is more than a job portal.
+WaveSync is more than a job portal.
 
 It is a career ecosystem that combines AI, mentorship, referrals, networking, and community-driven hiring to create meaningful career opportunities for students while enabling startups and recruiters to discover talent through trusted connections.
 
