@@ -1,0 +1,271 @@
+// wavesync_backend/prisma/schema.prisma
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==============================================================================
+// 1. USER & IDENTITY
+// ==============================================================================
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  password          String
+  role              String    // 'student', 'alumni', 'company', 'admin'
+  fullName          String
+  profileImage      String?
+  visibilityMode    String    @default("private") // 'public', 'private'
+  isVerified        Boolean   @default(false)
+  isProfileComplete Boolean   @default(false)
+  headline          String?   @default("")
+  bio               String?   @default("")
+  
+  // Role-specific nested metadata stored as structured JSONB
+  studentDetails    Json?
+  alumniDetails     Json?
+  companyDetails    Json?
+  grantedAccess     Json?     // List of User IDs with granted access
+
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Core relationships
+  projects              Project[]
+  jobsPosted            Job[]                 @relation("PostedJobs")
+  applications          Application[]         @relation("StudentApplications")
+  referredApplications  Application[]         @relation("ReferredApplications")
+  mentorshipsSent       Mentorship[]          @relation("StudentMentorships")
+  mentorshipsReceived   Mentorship[]          @relation("AlumniMentorships")
+  collabPosts           CollabPost[]          @relation("AuthorCollabPosts")
+  collabApplications    CollabApplicant[]     @relation("StudentCollabApplications")
+  referralsGiven        Referral[]            @relation("AlumniReferrals")
+  referralsReceived     Referral[]            @relation("StudentReferrals")
+
+  // Build-to-Earn relationships
+  submissions           Submission[]          @relation("AuthorSubmissions")
+  reviewsGiven          SubmissionReview[]    @relation("ReviewerReviews")
+
+  @@index([role])
+}
+
+// ==============================================================================
+// 2. STUDENT PROJECTS
+// ==============================================================================
+model Project {
+  id           String   @id @default(uuid())
+  studentId    String
+  student      User     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  title        String
+  description  String
+  technologies String[]
+  github       String?
+  live         String?
+  image        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([studentId])
+}
+
+// ==============================================================================
+// 3. JOB POSTINGS
+// ==============================================================================
+model Job {
+  id           String        @id @default(uuid())
+  postedById   String
+  postedBy     User          @relation("PostedJobs", fields: [postedById], references: [id], onDelete: Cascade)
+  title        String
+  companyName  String
+  description  String
+  requirements String[]
+  jobType      String
+  location     String        @default("Remote")
+  salaryRange  String?
+  status       String        @default("open") // 'open', 'closed'
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  applications Application[]
+  referrals    Referral[]
+
+  @@index([postedById])
+  @@index([status])
+}
+
+// ==============================================================================
+// 4. JOB APPLICATIONS & ATS PIPELINE
+// ==============================================================================
+model Application {
+  id           String   @id @default(uuid())
+  jobId        String
+  job          Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User     @relation("StudentApplications", fields: [studentId], references: [id], onDelete: Cascade)
+  fitScore     Float
+  status       String   @default("applied") // 'applied', 'shortlisted', 'interviewing', 'offered', 'accepted', 'rejected'
+  isReferral   Boolean  @default(false)
+  referredById String?
+  referredBy   User?    @relation("ReferredApplications", fields: [referredById], references: [id], onDelete: SetNull)
+  resumeLink   String?
+  coverLetter  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([jobId, studentId])
+  @@index([studentId])
+  @@index([jobId])
+  @@index([status])
+}
+
+// ==============================================================================
+// 5. MENTORSHIP REQUESTS
+// ==============================================================================
+model Mentorship {
+  id        String   @id @default(uuid())
+  studentId String
+  student   User     @relation("StudentMentorships", fields: [studentId], references: [id], onDelete: Cascade)
+  alumniId  String
+  alumni    User     @relation("AlumniMentorships", fields: [alumniId], references: [id], onDelete: Cascade)
+  message   String
+  status    String   @default("pending") // 'pending', 'accepted', 'rejected'
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([studentId, alumniId])
+  @@index([studentId])
+  @@index([alumniId])
+  @@index([status])
+}
+
+// ==============================================================================
+// 6. COLLABORATION POSTS & APPLICANTS
+// ==============================================================================
+model CollabPost {
+  id          String            @id @default(uuid())
+  authorId    String
+  author      User              @relation("AuthorCollabPosts", fields: [authorId], references: [id], onDelete: Cascade)
+  type        String            // 'Hackathon', 'Project', 'Study Group'
+  title       String
+  description String
+  roles       String[]
+  isActive    Boolean           @default(true)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  applicants  CollabApplicant[]
+  submissions Submission[]
+
+  @@index([authorId])
+  @@index([isActive])
+}
+
+model CollabApplicant {
+  id           String     @id @default(uuid())
+  collabPostId String
+  collabPost   CollabPost @relation(fields: [collabPostId], references: [id], onDelete: Cascade)
+  studentId    String
+  student      User       @relation("StudentCollabApplications", fields: [studentId], references: [id], onDelete: Cascade)
+  role         String?
+  message      String?
+  appliedAt    DateTime   @default(now())
+
+  @@unique([collabPostId, studentId])
+  @@index([collabPostId])
+  @@index([studentId])
+}
+
+// ==============================================================================
+// 7. REFERRALS (PERSISTENT RECORDS)
+// ==============================================================================
+model Referral {
+  id          String   @id @default(uuid())
+  alumniId    String
+  alumni      User     @relation("AlumniReferrals", fields: [alumniId], references: [id], onDelete: Cascade)
+  studentId   String
+  student     User     @relation("StudentReferrals", fields: [studentId], references: [id], onDelete: Cascade)
+  jobId       String?
+  job         Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  companyName String?
+  notes       String?
+  status      String   @default("referred") // 'referred', 'interviewing', 'hired', 'declined'
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([alumniId])
+  @@index([studentId])
+  @@index([jobId])
+}
+
+// ==============================================================================
+// 8. OTP & VERIFICATION TOKENS
+// ==============================================================================
+model Otp {
+  id         String   @id @default(uuid())
+  email      String
+  otp        String
+  attempts   Int      @default(0)
+  isVerified Boolean  @default(false)
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+
+  @@index([email])
+}
+
+// ==============================================================================
+// 9. BUILD-TO-EARN: SUBMISSIONS
+// ==============================================================================
+model Submission {
+  id           String      @id @default(uuid())
+  authorId     String
+  author       User        @relation("AuthorSubmissions", fields: [authorId], references: [id], onDelete: Cascade)
+  collabPostId String?
+  collabPost   CollabPost? @relation(fields: [collabPostId], references: [id], onDelete: SetNull)
+  title        String
+  description  String
+  proofUrl     String      // Must be https:// URL
+  proofType    String      // 'github', 'live', 'pdf', 'other'
+  status       String      @default("pending")
+  // Valid status values and transitions:
+  //   'pending'   → 'in_review'  (first review submitted)
+  //   'in_review' → 'approved'   (verdict: approved)
+  //   'in_review' → 'rejected'   (verdict: rejected)
+  //   'in_review' → 'pending'    (verdict: needs_revision, allows re-review)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  reviews      SubmissionReview[]
+
+  @@index([authorId])
+  @@index([status])
+  @@index([collabPostId])
+}
+
+// ==============================================================================
+// 10. BUILD-TO-EARN: SUBMISSION REVIEWS
+// ==============================================================================
+model SubmissionReview {
+  id                String     @id @default(uuid())
+  submissionId      String
+  submission        Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  reviewerId        String
+  reviewer          User       @relation("ReviewerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  verdict           String
+  // 'approved'        → Submission.status becomes 'approved'
+  // 'rejected'        → Submission.status becomes 'rejected'
+  // 'needs_revision'  → Submission.status reverts to 'pending'
+  feedback          String
+  // Ed25519 signature fields (signed with WAVESYNC_SIGNING_PRIVATE_KEY, stored in env only)
+  signedPayload     String?    // Canonical string: "<submissionId>:<reviewerId>:<verdict>:<iso8601>"
+  signature         String?    // Base64url-encoded Ed25519 signature over signedPayload
+  signatureVerified Boolean    @default(false) // True when signature was verified at write time
+  createdAt         DateTime   @default(now())
+
+  @@unique([submissionId, reviewerId])
+  @@index([submissionId])
+  @@index([reviewerId])
+}

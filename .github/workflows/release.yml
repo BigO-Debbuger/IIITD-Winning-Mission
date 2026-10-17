@@ -1,4 +1,4 @@
-name: Release ReferLoom APK
+name: Release WaveSync APK
 
 on:
   push:
@@ -28,11 +28,11 @@ jobs:
           token: ${{ secrets.EXPO_TOKEN }}
 
       - name: 4. Install Dependencies
-        working-directory: ./referloom_fixed
+        working-directory: ./wavesync_fixed
         run: npm install
 
       - name: 5. Build Android APK via EAS
-        working-directory: ./referloom_fixed
+        working-directory: ./wavesync_fixed
         env:
           NODE_NO_WARNINGS: 1 # This hides the punycode warning so it doesn't break our JSON parser
         run: |
@@ -45,11 +45,11 @@ jobs:
           # 3. Extract the exact download URL for that specific build
           APK_URL=$(eas build:view $BUILD_ID --json | jq -r '.artifacts.buildUrl')
           
-          # 4. Download the file and name it ReferLoom.apk
-          wget "$APK_URL" -O ./ReferLoom.apk
+          # 4. Download the file and name it WaveSync.apk
+          wget "$APK_URL" -O ./WaveSync.apk
 
       - name: 6. Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          files: ./referloom_fixed/ReferLoom.apk
+          files: ./wavesync_fixed/WaveSync.apk
           generate_release_notes: true
