@@ -23,6 +23,22 @@ export const sendOtp = async (req, res) => {
       return res.status(400).json({ message: "An account with this email is already verified. Please log in." });
     }
 
+    // Rate limit: prevent spamming OTP requests (enforced outside test environment)
+    const isTest = process.env.NODE_ENV === "test";
+    if (!isTest) {
+      const recentOtp = await prisma.otp.findFirst({
+        where: {
+          email: cleanEmail,
+          createdAt: { gt: new Date(Date.now() - 60 * 1000) }, // 60s cooldown
+        },
+      });
+      if (recentOtp) {
+        return res.status(429).json({
+          message: "Please wait at least 60 seconds before requesting another verification code.",
+        });
+      }
+    }
+
     // 1. Generate 6-digit OTP
     const otpCode = generateOTP();
 
@@ -54,11 +70,14 @@ export const sendOtp = async (req, res) => {
       }
     }
 
-    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+    // Strict production isolation: devOtp and console logging are NEVER permitted in production
+    const isProduction = process.env.NODE_ENV === "production";
+    const isDev = !isProduction && (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test");
+
+    if (isDev) {
       console.log(`[DEV ONLY] OTP generated for ${cleanEmail}: ${otpCode}`);
     }
 
-    const isDev = process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
     res.status(200).json({
       message: "OTP sent successfully",
       ...(isDev ? { devOtp: otpCode } : {}),
@@ -126,6 +145,8 @@ export const verifyOtp = async (req, res) => {
           where: { email: cleanEmail },
           data: { isVerified: true },
         });
+        // Consume and clean up OTP record immediately for existing user
+        await tx.otp.deleteMany({ where: { email: cleanEmail } });
       }
     });
 

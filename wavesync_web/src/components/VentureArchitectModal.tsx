@@ -1,6 +1,7 @@
 // wavesync_web/src/components/VentureArchitectModal.tsx
 import React, { useState } from 'react';
-import { api, VenturePlan } from '../services/api';
+import { api, VenturePlan, CollabProject } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { Modal } from './Modal';
 import {
   Sparkles,
@@ -9,21 +10,28 @@ import {
   ExternalLink,
   Loader2,
   Target,
+  Rocket,
+  Users,
 } from 'lucide-react';
 
 interface VentureArchitectModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onProjectCreated?: (collab: CollabProject) => void;
 }
 
 export const VentureArchitectModal: React.FC<VentureArchitectModalProps> = ({
   isOpen,
   onClose,
+  onProjectCreated,
 }) => {
+  const { isAuthenticated, openAuthModal } = useAuth();
   const [idea, setIdea] = useState('');
   const [targetDomain, setTargetDomain] = useState('Developer Infrastructure & AI');
   const [stage, setStage] = useState('Idea Stage');
   const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [plan, setPlan] = useState<VenturePlan | null>(null);
 
@@ -36,6 +44,7 @@ export const VentureArchitectModal: React.FC<VentureArchitectModalProps> = ({
 
     setLoading(true);
     setError(null);
+    setSaveSuccess(false);
 
     try {
       const res = await api.generateVenturePlan({
@@ -48,6 +57,34 @@ export const VentureArchitectModal: React.FC<VentureArchitectModalProps> = ({
       setError(err.message || 'Failed to generate venture blueprint.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveVenture = async () => {
+    if (!plan) return;
+    if (!isAuthenticated) {
+      onClose();
+      openAuthModal('login');
+      return;
+    }
+
+    setSaving(true);
+    setError(null);
+
+    try {
+      const skills = Array.from(new Set(plan.requiredTeamCapabilities.flatMap((c) => c.skills)));
+      const created = await api.createCollabPost({
+        title: plan.planTitle,
+        description: `${plan.problemStatement}\n\nMilestones:\n${plan.technicalMilestones.map((m) => `• ${m.phase}: ${m.deliverable} (${m.duration})`).join('\n')}`,
+        skillsRequired: skills.length > 0 ? skills : ['Engineering', 'Product Lead'],
+        projectStage: stage || 'Idea Stage',
+      });
+      setSaveSuccess(true);
+      if (onProjectCreated) onProjectCreated(created);
+    } catch (err: any) {
+      setError(err.message || 'Failed to save and publish venture.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -453,6 +490,70 @@ export const VentureArchitectModal: React.FC<VentureArchitectModalProps> = ({
                   </a>
                 </div>
               ))}
+            </div>
+
+            <p style={{ fontSize: '0.74rem', color: 'var(--ink-faint)', fontStyle: 'italic', margin: '8px 0 0 0' }}>
+              * Note: Matched ecosystem grants are maintained by independent foundations (e.g. Ethereum Foundation ESP, Protocol Labs). Funding eligibility and allocations are subject to each program's independent review and acceptance criteria.
+            </p>
+          </div>
+
+          {/* Action Bar: Save & Publish Venture to Network */}
+          <div
+            style={{
+              marginTop: 24,
+              paddingTop: 16,
+              borderTop: '2px solid var(--border-strong)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+              flexWrap: 'wrap',
+            }}
+          >
+            <div style={{ fontSize: '0.84rem', color: 'var(--ink-muted)' }}>
+              {saveSuccess ? (
+                <span style={{ color: '#047857', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <CheckCircle2 size={16} /> Saved & Published to Venture Network!
+                </span>
+              ) : (
+                <span>Ready to recruit co-founders for this blueprint?</span>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: 10 }}>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-outline"
+                style={{ minHeight: 40, padding: '0 18px', fontSize: '0.84rem' }}
+              >
+                Close
+              </button>
+              {saveSuccess ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    const el = document.getElementById('founders');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                  className="btn btn-dark"
+                  style={{ minHeight: 40, padding: '0 20px', fontSize: '0.84rem', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                >
+                  <Users size={15} /> View in Venture Showcase
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleSaveVenture}
+                  disabled={saving}
+                  className="btn btn-coral"
+                  style={{ minHeight: 40, padding: '0 20px', fontSize: '0.84rem' }}
+                >
+                  {saving ? <Loader2 size={15} className="spinner" /> : <Rocket size={15} />}
+                  Save & Publish Venture
+                </button>
+              )}
             </div>
           </div>
         </div>

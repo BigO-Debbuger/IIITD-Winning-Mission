@@ -27,7 +27,12 @@ import errorHandler from "./middlewares/errorHandler.js";
 dotenv.config();
 
 // Startup Configuration Validation
-if (!process.env.JWT_SECRET) {
+if (process.env.NODE_ENV === "production") {
+  if (!process.env.JWT_SECRET || process.env.JWT_SECRET === "wavesync_dev_fallback_secret_key_32chars") {
+    console.error("❌ [FATAL CONFIG ERROR] JWT_SECRET must be explicitly and securely configured in production.");
+    process.exit(1);
+  }
+} else if (!process.env.JWT_SECRET) {
   console.warn("⚠️ [SECURITY WARNING] JWT_SECRET is not set. Authentication will fail or be insecure.");
 }
 

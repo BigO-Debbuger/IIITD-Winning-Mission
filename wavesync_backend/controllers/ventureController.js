@@ -3,25 +3,25 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const KNOWN_ECOSYSTEM_GRANTS = [
   {
-    grantName: "WaveSync Foundation Developer Grant",
-    amount: "$25,000",
-    focus: "Developer Infrastructure & Verifiable Protocols",
-    criteria: "Working proof-of-work prototype with Ed25519 signature test suite",
-    source: "https://wavesync.io/grants/foundation-v1",
+    grantName: "Ethereum Foundation Ecosystem Support Program",
+    amount: "Up to $30,000",
+    focus: "Open Source Tooling, Cryptography & Verifiable Protocols",
+    criteria: "Public open-source repository with reproducible test suites and architecture specs",
+    source: "https://esp.ethereum.foundation",
   },
   {
-    grantName: "Decentralized AI Alignment & Benchmark Grant",
-    amount: "$15,000",
-    focus: "Model evaluation, RLHF verification, and agentic reproducibility",
-    criteria: "Open-source repository with reproducible benchmark harness",
-    source: "https://wavesync.io/grants/ai-alignment",
+    grantName: "Protocol Labs DevGrants",
+    amount: "Up to $20,000",
+    focus: "Verifiable Compute, Distributed State & Peer-to-Peer Networks",
+    criteria: "Working proof-of-concept milestone delivered on GitHub",
+    source: "https://github.com/protocol/devgrants",
   },
   {
-    grantName: "Campus & University Venture Pilot Pool",
-    amount: "$10,000",
-    focus: "Student & Alumni founding cohorts with cross-functional gaps filled",
-    criteria: "Formed team of at least 2 complementary verified co-founders",
-    source: "https://wavesync.io/grants/campus-pilot",
+    grantName: "Gitcoin Open Source Community Grants",
+    amount: "$5,000 - $15,000",
+    focus: "Developer Infrastructure, Public Goods & Web Tooling",
+    criteria: "Active collaborative initiative with verified public deliverables",
+    source: "https://explorer.gitcoin.co",
   },
 ];
 
@@ -175,4 +175,8 @@ Return ONLY valid JSON matching this schema:
   } catch (error) {
     res.status(500).json({ message: "Failed to generate venture blueprint", error: error.message });
   }
+};
+
+export const getEcosystemGrants = (req, res) => {
+  res.json(KNOWN_ECOSYSTEM_GRANTS);
 };

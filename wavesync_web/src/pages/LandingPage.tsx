@@ -18,6 +18,8 @@ import { VentureArchitectModal } from '../components/VentureArchitectModal';
 import { CofounderMatchingModal } from '../components/CofounderMatchingModal';
 import { ProblemSection } from '../components/ProblemSection';
 import { EcosystemSection } from '../components/EcosystemSection';
+import { OpportunitySlideOver } from '../components/OpportunitySlideOver';
+import { VentureSlideOver } from '../components/VentureSlideOver';
 import { Reveal } from '../components/Reveal';
 import {
   Sparkles,
@@ -34,6 +36,7 @@ import {
   Award,
   Plus,
   Compass,
+  Search,
 } from 'lucide-react';
 
 export const LandingPage: React.FC<{
@@ -44,15 +47,23 @@ export const LandingPage: React.FC<{
   const [collabs, setCollabs] = useState<CollabProject[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [jobsLoading, setJobsLoading] = useState(true);
-  const [activeJobFilter, setActiveJobFilter] = useState<'all' | 'fulltime' | 'bounty'>('all');
+  const [activeJobFilter, setActiveJobFilter] = useState<'all' | 'fulltime' | 'bounty' | 'applied'>('all');
+  const [jobSearchQuery, setJobSearchQuery] = useState('');
+  const [myApplications, setMyApplications] = useState<any[]>([]);
 
-  // Modal States
+  // Modal & Slide-Over States
   const [submitModalOpen, setSubmitModalOpen] = useState(false);
   const [applyModalOpen, setApplyModalOpen] = useState(false);
   const [selectedJobForApply, setSelectedJobForApply] = useState<JobOpportunity | null>(null);
+  const [slideOverJob, setSlideOverJob] = useState<JobOpportunity | null>(null);
+  const [slideOverJobOpen, setSlideOverJobOpen] = useState(false);
+
   const [launchProjectModalOpen, setLaunchProjectModalOpen] = useState(false);
   const [joinCollabModalOpen, setJoinCollabModalOpen] = useState(false);
   const [selectedCollabForJoin, setSelectedCollabForJoin] = useState<CollabProject | null>(null);
+  const [slideOverCollab, setSlideOverCollab] = useState<CollabProject | null>(null);
+  const [slideOverCollabOpen, setSlideOverCollabOpen] = useState(false);
+
   const [credentialModalOpen, setCredentialModalOpen] = useState(false);
   const [selectedSubmissionId, setSelectedSubmissionId] = useState<string | null>(null);
   const [reviewQueueModalOpen, setReviewQueueModalOpen] = useState(false);
@@ -79,6 +90,22 @@ export const LandingPage: React.FC<{
     loadData();
   }, []);
 
+  useEffect(() => {
+    async function loadApplications() {
+      if (isAuthenticated) {
+        try {
+          const apps = await api.getMyApplications();
+          setMyApplications(apps);
+        } catch (err) {
+          console.error('Failed to load user applications:', err);
+        }
+      } else {
+        setMyApplications([]);
+      }
+    }
+    loadApplications();
+  }, [isAuthenticated]);
+
   const handleSubmissionAdded = (newSub: Submission) => {
     setSubmissions((prev) => [newSub, ...prev]);
   };
@@ -96,6 +123,11 @@ export const LandingPage: React.FC<{
     }
   };
 
+  const handleOpenJobDetails = (job: JobOpportunity) => {
+    setSlideOverJob(job);
+    setSlideOverJobOpen(true);
+  };
+
   const handleOpenJoinCollab = (collab: CollabProject) => {
     if (!isAuthenticated) {
       openAuthModal('login');
@@ -103,6 +135,11 @@ export const LandingPage: React.FC<{
       setSelectedCollabForJoin(collab);
       setJoinCollabModalOpen(true);
     }
+  };
+
+  const handleOpenCollabDetails = (collab: CollabProject) => {
+    setSlideOverCollab(collab);
+    setSlideOverCollabOpen(true);
   };
 
   const handleOpenCredential = (submissionId: string) => {
@@ -117,9 +154,38 @@ export const LandingPage: React.FC<{
     }
   };
 
+  const handleScrollToBounties = () => {
+    setActiveJobFilter('bounty');
+    scrollToSection('opportunities');
+  };
+
+  const handleApplySuccess = async () => {
+    if (isAuthenticated) {
+      try {
+        const apps = await api.getMyApplications();
+        setMyApplications(apps);
+      } catch (err) {
+        console.error('Failed to refresh applications:', err);
+      }
+    }
+  };
+
   const filteredJobs = jobs.filter((j) => {
-    if (activeJobFilter === 'fulltime') return j.jobType.toLowerCase().includes('full');
-    if (activeJobFilter === 'bounty') return !j.jobType.toLowerCase().includes('full');
+    // 1. Category / Status filter
+    if (activeJobFilter === 'fulltime' && !j.jobType.toLowerCase().includes('full')) return false;
+    if (activeJobFilter === 'bounty' && j.jobType.toLowerCase().includes('full')) return false;
+    if (activeJobFilter === 'applied' && !myApplications.some((app) => app.jobId === j.id)) return false;
+
+    // 2. Text Search Query
+    if (jobSearchQuery.trim()) {
+      const q = jobSearchQuery.toLowerCase();
+      const matchTitle = (j.title || '').toLowerCase().includes(q);
+      const matchCompany = (j.companyName || j.company || '').toLowerCase().includes(q);
+      const matchDesc = (j.description || '').toLowerCase().includes(q);
+      const matchLocation = (j.location || '').toLowerCase().includes(q);
+      const matchReq = (j.requirements || []).some((req) => req.toLowerCase().includes(q));
+      if (!matchTitle && !matchCompany && !matchDesc && !matchLocation && !matchReq) return false;
+    }
     return true;
   });
 
@@ -150,8 +216,8 @@ export const LandingPage: React.FC<{
             cryptographically signed proofs of work.
           </p>
 
-          {/* Primary Action Row */}
-          <div className="hero-actions hero-enter-4" style={{ flexWrap: 'wrap' }}>
+          {/* Primary Action Row with Clear Visual Hierarchy */}
+          <div className="hero-actions hero-enter-4" style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             <button
               onClick={() => {
                 if (!isAuthenticated) {
@@ -165,31 +231,6 @@ export const LandingPage: React.FC<{
             >
               Launch or Discover a Project <ArrowUpRight size={18} />
             </button>
-            <button
-              onClick={() => setVentureArchitectModalOpen(true)}
-              className="btn btn-outline"
-              style={{
-                minHeight: 52,
-                padding: '0 24px',
-                fontSize: '1rem',
-                background: '#FFFFFF',
-              }}
-            >
-              <Sparkles size={16} /> AI Venture Architect
-            </button>
-            <button
-              onClick={() => onOpenNetwork ? onOpenNetwork('directory') : undefined}
-              className="btn btn-outline"
-              style={{
-                minHeight: 52,
-                padding: '0 24px',
-                fontSize: '1rem',
-                background: 'var(--accent-mint)',
-                fontWeight: 900,
-              }}
-            >
-              <Users size={16} /> Alumni & Peer Network
-            </button>
             <a
               href="#graph"
               className="btn btn-dark"
@@ -197,6 +238,18 @@ export const LandingPage: React.FC<{
             >
               Explore 3D Ecosystem Graph
             </a>
+            <button
+              onClick={() => setVentureArchitectModalOpen(true)}
+              className="btn btn-outline"
+              style={{
+                minHeight: 52,
+                padding: '0 22px',
+                fontSize: '0.95rem',
+                background: '#FFFFFF',
+              }}
+            >
+              AI Venture Architect
+            </button>
           </div>
 
           {/* Tactile Demand Showcase Cards */}
@@ -257,7 +310,7 @@ export const LandingPage: React.FC<{
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Users size={16} color="var(--accent-coral)" /> 140+ Founder Cohorts Formed
+                  <Users size={16} color="var(--accent-coral)" /> Complementary 4-Pillar Synergy
                 </span>
                 <span style={{ color: 'var(--accent-coral)', textDecoration: 'underline' }}>
                   Analyze Synergy &rarr;
@@ -303,15 +356,14 @@ export const LandingPage: React.FC<{
             <div
               className="tactile-card"
               style={{ background: '#FFFFFF', cursor: 'pointer' }}
-              onClick={() => scrollToSection('bounties')}
+              onClick={handleScrollToBounties}
             >
               <span className="tactile-card-tag" style={{ background: '#FDF4FF', color: '#7E22CE' }}>
-                Capital & Grants
+                Ecosystem Grants
               </span>
-              <h3>$150k+ Non-Dilutive Bounties</h3>
+              <h3>Open-Source Grants & Bounties</h3>
               <p>
-                Direct access to university innovation funds, angel syndicates, and ecosystem micro-grants
-                awarded directly to verified build milestones.
+                Discover verified external foundation programs and community micro-grants (such as Ethereum Foundation ESP, Protocol Labs DevGrants, and Gitcoin) based on transparent milestones.
               </p>
               <div
                 style={{
@@ -324,7 +376,7 @@ export const LandingPage: React.FC<{
                 }}
               >
                 <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <Zap size={16} color="var(--accent-violet)" /> Average Grant Decision in 48h
+                  <Zap size={16} color="var(--accent-violet)" /> Sponsor-Verified Acceptance Criteria
                 </span>
                 <span style={{ color: 'var(--accent-violet)', textDecoration: 'underline' }}>
                   Browse Bounties &rarr;
@@ -344,7 +396,7 @@ export const LandingPage: React.FC<{
           if (!isAuthenticated) openAuthModal('login');
           else setReviewQueueModalOpen(true);
         }}
-        onOpenBounties={() => scrollToSection('bounties')}
+        onOpenBounties={handleScrollToBounties}
         onOpenEcosystem={() => scrollToSection('ecosystem')}
       />
 
@@ -426,7 +478,7 @@ export const LandingPage: React.FC<{
           <Reveal>
             <div className="section-head">
               <span className="section-eyebrow">
-                <Zap size={14} /> The WaveSync Architecture
+                The WaveSync Architecture
               </span>
               <h2 className="section-title">
                 From First Commit to Venture Capital.
@@ -491,7 +543,7 @@ export const LandingPage: React.FC<{
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 36 }}>
               <div>
                 <span className="section-eyebrow">
-                  <Briefcase size={14} /> Open Roles & Grants
+                  Open Roles & Grants
                 </span>
                 <h2 className="section-title" style={{ marginBottom: 8 }}>
                   Current Opportunities
@@ -499,108 +551,287 @@ export const LandingPage: React.FC<{
                 <p>Direct equity roles, founding engineering positions, and funded bounties.</p>
               </div>
 
-              {/* Filter Buttons */}
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button
-                  className={`btn ${activeJobFilter === 'all' ? 'btn-dark' : 'btn-outline'}`}
-                  onClick={() => setActiveJobFilter('all')}
-                  style={{ minHeight: 38, padding: '0 16px' }}
-                >
-                  All Opportunities
-                </button>
-                <button
-                  className={`btn ${activeJobFilter === 'fulltime' ? 'btn-dark' : 'btn-outline'}`}
-                  onClick={() => setActiveJobFilter('fulltime')}
-                  style={{ minHeight: 38, padding: '0 16px' }}
-                >
-                  Founding Roles
-                </button>
-                <button
-                  className={`btn ${activeJobFilter === 'bounty' ? 'btn-dark' : 'btn-outline'}`}
-                  onClick={() => setActiveJobFilter('bounty')}
-                  style={{ minHeight: 38, padding: '0 16px' }}
-                >
-                  Bounties & Grants
-                </button>
+              {/* Search & Filter Controls */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, alignItems: 'flex-end' }}>
+                <div style={{ position: 'relative', width: '100%', minWidth: 260 }}>
+                  <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--ink-muted)' }} />
+                  <input
+                    type="text"
+                    placeholder="Search role, skill, company..."
+                    value={jobSearchQuery}
+                    onChange={(e) => setJobSearchQuery(e.target.value)}
+                    className="form-input"
+                    style={{
+                      paddingLeft: 34,
+                      paddingRight: jobSearchQuery ? 30 : 12,
+                      height: 38,
+                      fontSize: '0.84rem',
+                      borderRadius: 999,
+                      background: '#FFFFFF',
+                      width: '100%',
+                    }}
+                  />
+                  {jobSearchQuery && (
+                    <button
+                      onClick={() => setJobSearchQuery('')}
+                      style={{
+                        position: 'absolute',
+                        right: 10,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'var(--ink-muted)',
+                        fontSize: '0.8rem',
+                        fontWeight: 700,
+                      }}
+                      title="Clear search"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button
+                    className={`btn ${activeJobFilter === 'all' ? 'btn-dark' : 'btn-outline'}`}
+                    onClick={() => setActiveJobFilter('all')}
+                    style={{ minHeight: 36, padding: '0 14px', fontSize: '0.82rem' }}
+                  >
+                    All Opportunities
+                  </button>
+                  <button
+                    className={`btn ${activeJobFilter === 'fulltime' ? 'btn-dark' : 'btn-outline'}`}
+                    onClick={() => setActiveJobFilter('fulltime')}
+                    style={{ minHeight: 36, padding: '0 14px', fontSize: '0.82rem' }}
+                  >
+                    Founding Roles
+                  </button>
+                  <button
+                    className={`btn ${activeJobFilter === 'bounty' ? 'btn-dark' : 'btn-outline'}`}
+                    onClick={() => setActiveJobFilter('bounty')}
+                    style={{ minHeight: 36, padding: '0 14px', fontSize: '0.82rem' }}
+                  >
+                    Bounties & Grants
+                  </button>
+                  {isAuthenticated && (
+                    <button
+                      className={`btn ${activeJobFilter === 'applied' ? 'btn-dark' : 'btn-outline'}`}
+                      onClick={() => setActiveJobFilter('applied')}
+                      style={{
+                        minHeight: 36,
+                        padding: '0 14px',
+                        fontSize: '0.82rem',
+                        borderColor: activeJobFilter === 'applied' ? 'var(--ink)' : 'var(--accent-coral)',
+                        color: activeJobFilter === 'applied' ? '#FFFFFF' : 'var(--accent-coral)',
+                      }}
+                    >
+                      My Applications ({myApplications.length})
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           </Reveal>
 
           <div className="opportunities-grid">
-            {filteredJobs.map((job, idx) => (
-              <Reveal key={job.id} staggerIndex={idx} delay={30}>
-                <div className="opp-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                  <div>
-                    <div className="opp-meta-row">
-                      <span
-                        style={{
-                          fontSize: '0.75rem',
-                          fontWeight: 900,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.06em',
-                          color: 'var(--accent-coral)',
-                        }}
-                      >
-                        {job.companyName || job.company}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: '0.72rem',
-                          fontWeight: 800,
-                          padding: '3px 10px',
-                          borderRadius: 999,
-                          background: 'var(--paper-deep)',
-                          border: '1px solid var(--border-strong)',
-                        }}
-                      >
-                        {job.location}
-                      </span>
-                    </div>
-
-                    <h3 style={{ fontSize: '1.35rem', marginBottom: 10 }}>{job.title}</h3>
-                    <p style={{ fontSize: '0.9rem', marginBottom: 16 }}>{job.description}</p>
-
-                    <div className="opp-tags">
-                      {job.requirements.map((req, i) => (
-                        <span key={i} className="opp-tag">
-                          {req}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      paddingTop: 16,
-                      borderTop: '1px solid var(--border-subtle)',
-                      marginTop: 16,
-                    }}
-                  >
-                    <div>
-                      <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 900, color: 'var(--ink)' }}>
-                        {job.salaryRange || job.salary || 'Competitive'}
-                      </span>
-                      {job.equity && (
-                        <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#047857' }}>
-                          + {job.equity} Equity
-                        </span>
-                      )}
-                    </div>
-
-                    <button
-                      onClick={() => handleOpenApply(job)}
-                      className="btn btn-primary"
-                      style={{ minHeight: 36, padding: '0 16px' }}
+            {filteredJobs.length === 0 ? (
+              <div
+                style={{
+                  gridColumn: '1 / -1',
+                  textAlign: 'center',
+                  padding: '48px 20px',
+                  background: 'var(--paper)',
+                  border: '2px dashed var(--border-strong)',
+                  borderRadius: 'var(--radius-lg)',
+                }}
+              >
+                <p style={{ fontSize: '1.05rem', fontWeight: 800, color: 'var(--ink)', marginBottom: 6 }}>
+                  No opportunities match "{jobSearchQuery || activeJobFilter}".
+                </p>
+                <p style={{ fontSize: '0.86rem', color: 'var(--ink-secondary)', marginBottom: 14 }}>
+                  {activeJobFilter === 'applied'
+                    ? "You haven't applied to any roles yet. Explore the listings below to submit your first application."
+                    : "Try clearing search keywords or changing filters to view all active opportunities."}
+                </p>
+                <button
+                  onClick={() => {
+                    setJobSearchQuery('');
+                    setActiveJobFilter('all');
+                  }}
+                  className="btn btn-outline"
+                  style={{ minHeight: 34, padding: '0 16px', fontSize: '0.82rem' }}
+                >
+                  Reset Filters
+                </button>
+              </div>
+            ) : (
+              filteredJobs.map((job, idx) => {
+                const myApp = myApplications.find((app) => app.jobId === job.id);
+                return (
+                  <Reveal key={job.id} staggerIndex={idx} delay={30}>
+                    <div
+                      className="opp-card"
+                      onClick={() => handleOpenJobDetails(job)}
+                      style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
                     >
-                      Apply Now <ArrowUpRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
+                      <div>
+                        <div className="opp-meta-row">
+                          <span
+                            style={{
+                              fontSize: '0.75rem',
+                              fontWeight: 900,
+                              textTransform: 'uppercase',
+                              letterSpacing: '0.06em',
+                              color: !job.jobType.toLowerCase().includes('full') ? 'var(--accent-violet)' : 'var(--accent-coral)',
+                            }}
+                          >
+                            {job.companyName || job.company}
+                          </span>
+                          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', alignItems: 'center' }}>
+                            {myApp && (
+                              <span
+                                style={{
+                                  fontSize: '0.7rem',
+                                  fontWeight: 850,
+                                  padding: '2px 8px',
+                                  borderRadius: 999,
+                                  background: '#EFFDF5',
+                                  color: '#047857',
+                                  border: '1px solid #10B981',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: 4,
+                                }}
+                              >
+                                <CheckCircle2 size={11} /> {myApp.status.toUpperCase()}
+                              </span>
+                            )}
+                            <span
+                              style={{
+                                fontSize: '0.72rem',
+                                fontWeight: 800,
+                                padding: '3px 10px',
+                                borderRadius: 999,
+                                background: 'var(--paper-deep)',
+                                border: '1px solid var(--border-strong)',
+                              }}
+                            >
+                              {job.location}
+                            </span>
+                            <span
+                              style={{
+                                fontSize: '0.72rem',
+                                fontWeight: 800,
+                                padding: '3px 10px',
+                                borderRadius: 999,
+                                background: !job.jobType.toLowerCase().includes('full') ? '#FDF4FF' : '#EFFDF5',
+                                color: !job.jobType.toLowerCase().includes('full') ? '#7E22CE' : '#047857',
+                                border: '1px solid var(--border-subtle)',
+                              }}
+                            >
+                              {job.jobType}
+                            </span>
+                          </div>
+                        </div>
+
+                        <h3 style={{ fontSize: '1.35rem', marginBottom: 10, lineHeight: 1.25 }}>{job.title}</h3>
+                        <p className="opp-card-desc">{job.description}</p>
+
+                        <div className="opp-tags">
+                          {job.requirements.slice(0, 3).map((req, i) => (
+                            <span key={i} className="opp-tag">
+                              {req}
+                            </span>
+                          ))}
+                          {job.requirements.length > 3 && (
+                            <span className="opp-tag" style={{ background: 'var(--paper-deep)', fontWeight: 800 }}>
+                              +{job.requirements.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          paddingTop: 16,
+                          borderTop: '1px solid var(--border-subtle)',
+                          marginTop: 16,
+                        }}
+                      >
+                        <div>
+                          <span style={{ display: 'block', fontSize: '0.95rem', fontWeight: 900, color: 'var(--ink)' }}>
+                            {job.salaryRange || job.salary || 'Competitive'}
+                          </span>
+                          {job.equity && (
+                            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#047857' }}>
+                              + {job.equity} Equity
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleOpenJobDetails(job);
+                            }}
+                            style={{
+                              fontSize: '0.8rem',
+                              fontWeight: 800,
+                              textDecoration: 'underline',
+                              color: 'var(--ink)',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            View Scope &rarr;
+                          </button>
+
+                          {myApp ? (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenJobDetails(job);
+                              }}
+                              className="btn btn-outline"
+                              style={{
+                                minHeight: 36,
+                                padding: '0 14px',
+                                fontSize: '0.82rem',
+                                background: '#F0FDF4',
+                                color: '#047857',
+                                borderColor: '#10B981',
+                                fontWeight: 800,
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: 4,
+                              }}
+                            >
+                              <CheckCircle2 size={13} /> Applied
+                            </button>
+                          ) : (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleOpenApply(job);
+                              }}
+                              className="btn btn-primary"
+                              style={{ minHeight: 36, padding: '0 16px', fontSize: '0.84rem' }}
+                            >
+                              Apply Now
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Reveal>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
@@ -612,7 +843,7 @@ export const LandingPage: React.FC<{
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 36 }}>
               <div>
                 <span className="section-eyebrow">
-                  <Users size={14} /> Co-Founder Discovery
+                  Co-Founder Discovery
                 </span>
                 <h2 className="section-title" style={{ marginBottom: 8 }}>
                   Ambitious Ventures Seeking Technical Partners.
@@ -631,14 +862,14 @@ export const LandingPage: React.FC<{
                   className="btn btn-coral"
                   style={{ minHeight: 40, padding: '0 18px', fontSize: '0.85rem' }}
                 >
-                  <Plus size={15} /> Launch Your Project
+                  Launch Venture
                 </button>
                 <button
                   onClick={() => setCofounderMatchingModalOpen(true)}
                   className="btn btn-outline"
                   style={{ minHeight: 40, padding: '0 18px', fontSize: '0.85rem', background: '#FFFFFF' }}
                 >
-                  <Users size={15} /> Analyze Co-Founder Synergy
+                  Analyze Synergy
                 </button>
               </div>
             </div>
@@ -647,10 +878,14 @@ export const LandingPage: React.FC<{
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: 20 }}>
             {collabs.map((collab, idx) => (
               <Reveal key={collab.id} staggerIndex={idx} delay={30}>
-                <div className="tactile-card" style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                <div
+                  className="tactile-card"
+                  onClick={() => handleOpenCollabDetails(collab)}
+                  style={{ height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', cursor: 'pointer' }}
+                >
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <span className="tactile-card-tag" style={{ background: 'var(--accent-lime)' }}>
+                      <span className="tactile-card-tag" style={{ background: 'var(--accent-lime)', marginBottom: 0 }}>
                         {collab.projectStage || 'Active Discovery'}
                       </span>
                       <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--ink-muted)' }}>
@@ -658,25 +893,58 @@ export const LandingPage: React.FC<{
                       </span>
                     </div>
 
-                    <h3 style={{ fontSize: '1.3rem', marginBottom: 10 }}>{collab.title}</h3>
-                    <p style={{ fontSize: '0.9rem', marginBottom: 18 }}>{collab.description}</p>
+                    <h3 style={{ fontSize: '1.3rem', marginBottom: 10, lineHeight: 1.25 }}>{collab.title}</h3>
+                    <p style={{
+                      fontSize: '0.9rem',
+                      marginBottom: 16,
+                      color: 'var(--ink-muted)',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      lineHeight: 1.55,
+                    }}>
+                      {collab.description}
+                    </p>
 
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
-                      {collab.skillsRequired.map((skill, sIdx) => (
+                      {collab.skillsRequired.slice(0, 3).map((skill, sIdx) => (
                         <span key={sIdx} className="opp-tag">
                           {skill}
                         </span>
                       ))}
+                      {collab.skillsRequired.length > 3 && (
+                        <span className="opp-tag" style={{ background: 'var(--paper-deep)', fontWeight: 800 }}>
+                          +{collab.skillsRequired.length - 3} more
+                        </span>
+                      )}
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleOpenJoinCollab(collab)}
-                    className="btn btn-outline"
-                    style={{ width: '100%', minHeight: 40 }}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      paddingTop: 14,
+                      borderTop: '1px solid var(--border-subtle)',
+                      marginTop: 'auto',
+                    }}
                   >
-                    Request to Join Venture <ArrowUpRight size={15} />
-                  </button>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, textDecoration: 'underline', color: 'var(--ink)' }}>
+                      Roadmap Details &rarr;
+                    </span>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenJoinCollab(collab);
+                      }}
+                      className="btn btn-outline"
+                      style={{ minHeight: 36, padding: '0 16px', fontSize: '0.82rem' }}
+                    >
+                      Join Venture
+                    </button>
+                  </div>
                 </div>
               </Reveal>
             ))}
@@ -691,7 +959,7 @@ export const LandingPage: React.FC<{
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 20, marginBottom: 36 }}>
               <div>
                 <span className="section-eyebrow">
-                  <Award size={14} /> Build-to-Earn Proof Ledger
+                  Build-to-Earn Proof Ledger
                 </span>
                 <h2 className="section-title" style={{ marginBottom: 8 }}>
                   Verified Engineering Proofs
@@ -704,29 +972,23 @@ export const LandingPage: React.FC<{
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                 <button
                   onClick={() => {
-                    if (!isAuthenticated) {
-                      openAuthModal('login');
-                    } else {
-                      setReviewQueueModalOpen(true);
-                    }
-                  }}
-                  className="btn btn-dark"
-                  style={{ minHeight: 44, padding: '0 18px' }}
-                >
-                  <Award size={16} /> Reviewer Queue
-                </button>
-                <button
-                  onClick={() => {
-                    if (!isAuthenticated) {
-                      openAuthModal('login');
-                    } else {
-                      setSubmitModalOpen(true);
-                    }
+                    if (!isAuthenticated) openAuthModal('login');
+                    else setSubmitModalOpen(true);
                   }}
                   className="btn btn-coral"
                   style={{ minHeight: 44, padding: '0 22px' }}
                 >
-                  <Plus size={16} /> Submit Your Proof of Work
+                  Submit Proof of Work
+                </button>
+                <button
+                  onClick={() => {
+                    if (!isAuthenticated) openAuthModal('login');
+                    else setReviewQueueModalOpen(true);
+                  }}
+                  className="btn btn-dark"
+                  style={{ minHeight: 44, padding: '0 18px' }}
+                >
+                  Reviewer Queue
                 </button>
               </div>
             </div>
@@ -802,15 +1064,24 @@ export const LandingPage: React.FC<{
                     <span style={{ fontSize: '0.78rem', color: 'var(--ink-faint)' }}>
                       by {sub.author?.fullName || 'Builder'}
                     </span>
-                    <a
-                      href={sub.proofUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
+                    <button
+                      type="button"
+                      onClick={() => handleOpenCredential(sub.id)}
                       className="btn btn-outline"
-                      style={{ minHeight: 34, padding: '0 12px', fontSize: '0.78rem' }}
+                      style={{
+                        minHeight: 34,
+                        padding: '0 14px',
+                        fontSize: '0.78rem',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        cursor: 'pointer',
+                        background: '#FFFFFF',
+                      }}
+                      title="Inspect cryptographic proof deliverable and audit record"
                     >
-                      Inspect Proof Artifact <ExternalLink size={12} />
-                    </a>
+                      Inspect Proof Artifact <ShieldCheck size={13} color="#047857" />
+                    </button>
                   </div>
                 </div>
               </Reveal>
@@ -927,9 +1198,9 @@ export const LandingPage: React.FC<{
               <h4>Protocol</h4>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <li><a href="#how-it-works">Architecture & Audits</a></li>
-                <li><a href="#">Ed25519 Signing Standards</a></li>
-                <li><a href="#">PostgreSQL & Prisma Core</a></li>
-                <li><a href="#">React Native Mobile App</a></li>
+                <li><a href="#bte">Ed25519 Signing Standards</a></li>
+                <li><a href="#graph">PostgreSQL & Prisma Core</a></li>
+                <li><a href="#opportunities">Live Ecosystem Grants</a></li>
               </ul>
             </div>
 
@@ -985,6 +1256,9 @@ export const LandingPage: React.FC<{
         job={selectedJobForApply}
         isOpen={applyModalOpen}
         onClose={() => setApplyModalOpen(false)}
+        onSuccess={() => {
+          api.getMyApplications().then(setMyApplications).catch(() => {});
+        }}
       />
 
       <LaunchProjectModal
@@ -1017,14 +1291,35 @@ export const LandingPage: React.FC<{
       <VentureArchitectModal
         isOpen={ventureArchitectModalOpen}
         onClose={() => setVentureArchitectModalOpen(false)}
+        onProjectCreated={handleProjectCreated}
       />
 
       <CofounderMatchingModal
         isOpen={cofounderMatchingModalOpen}
         onClose={() => setCofounderMatchingModalOpen(false)}
         onSelectCandidate={(cand) => {
-          setLaunchProjectModalOpen(true);
+          if (onOpenNetwork) {
+            onOpenNetwork('directory', cand.id);
+          } else {
+            setLaunchProjectModalOpen(true);
+          }
         }}
+      />
+
+      {/* Contextual Slide-Over Drawers (Progressive Disclosure) */}
+      <OpportunitySlideOver
+        job={slideOverJob}
+        isOpen={slideOverJobOpen}
+        onClose={() => setSlideOverJobOpen(false)}
+        onApply={(job) => handleOpenApply(job)}
+      />
+
+      <VentureSlideOver
+        collab={slideOverCollab}
+        isOpen={slideOverCollabOpen}
+        onClose={() => setSlideOverCollabOpen(false)}
+        onRequestJoin={(collab) => handleOpenJoinCollab(collab)}
+        onOpenCoFounders={() => setCofounderMatchingModalOpen(true)}
       />
     </div>
   );

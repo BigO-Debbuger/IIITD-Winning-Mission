@@ -23,6 +23,9 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
+  const [coverLetter, setCoverLetter] = useState('');
+  const [resumeLink, setResumeLink] = useState('');
+
   const handleApply = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!job) return;
@@ -36,7 +39,10 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
     setLoading(true);
     setError(null);
     try {
-      await api.applyToJob(job.id);
+      await api.applyToJob(job.id, {
+        coverLetter: coverLetter.trim() || undefined,
+        resumeLink: resumeLink.trim() || undefined,
+      });
       setSuccess(true);
       if (onSuccess) onSuccess();
     } catch (err: any) {
@@ -195,6 +201,52 @@ export const ApplyJobModal: React.FC<ApplyJobModalProps> = ({
                 </span>
               )}
             </div>
+          </div>
+
+          <div style={{ marginBottom: 16 }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                marginBottom: 6,
+              }}
+            >
+              Cover Note & Relevance (Optional)
+            </label>
+            <textarea
+              value={coverLetter}
+              onChange={(e) => setCoverLetter(e.target.value)}
+              placeholder="Why are you a fit for this opportunity? Highlight verified proofs or relevant projects..."
+              rows={3}
+              className="form-input"
+              style={{ width: '100%', resize: 'vertical', fontSize: '0.85rem' }}
+            />
+          </div>
+
+          <div style={{ marginBottom: 20 }}>
+            <label
+              style={{
+                display: 'block',
+                fontSize: '0.82rem',
+                fontWeight: 800,
+                textTransform: 'uppercase',
+                letterSpacing: '0.04em',
+                marginBottom: 6,
+              }}
+            >
+              Portfolio / GitHub / Resume Link (Optional)
+            </label>
+            <input
+              type="url"
+              value={resumeLink}
+              onChange={(e) => setResumeLink(e.target.value)}
+              placeholder="https://github.com/your-username or portfolio URL"
+              className="form-input"
+              style={{ width: '100%', fontSize: '0.85rem' }}
+            />
           </div>
 
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>

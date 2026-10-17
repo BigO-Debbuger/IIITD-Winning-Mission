@@ -152,7 +152,7 @@ export const EcosystemSection: React.FC<EcosystemSectionProps> = ({
         <Reveal>
           <div className="section-head">
             <span className="section-eyebrow">
-              <Users size={14} /> The Connected Ecosystem
+              The Connected Ecosystem
             </span>
             <h2 className="section-title">
               One Unified Network. Six Stakeholders.

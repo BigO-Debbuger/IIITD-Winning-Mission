@@ -4,6 +4,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 const getJwtSecret = () => {
+  if (process.env.NODE_ENV === "production" && (!process.env.JWT_SECRET || process.env.JWT_SECRET === "wavesync_dev_fallback_secret_key_32chars")) {
+    throw new Error("JWT_SECRET must be securely set in production environment.");
+  }
   return process.env.JWT_SECRET || "wavesync_dev_fallback_secret_key_32chars";
 };
 

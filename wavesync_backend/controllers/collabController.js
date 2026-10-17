@@ -210,6 +210,11 @@ export const applyToPost = async (req, res) => {
       return res.status(404).json({ message: "Venture or project not found." });
     }
 
+    // Venture ownership check: authors cannot apply to their own post
+    if (post.authorId === studentId) {
+      return res.status(400).json({ message: "You cannot apply to your own venture or project." });
+    }
+
     // Check if user already applied
     const existing = await prisma.collabApplicant.findUnique({
       where: {
@@ -234,6 +239,46 @@ export const applyToPost = async (req, res) => {
     });
 
     res.status(201).json({ message: "Collaboration request submitted successfully!", application });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get single Collab Post by ID
+export const getPostById = async (req, res) => {
+  try {
+    const post = await prisma.collabPost.findUnique({
+      where: { id: req.params.id },
+      include: {
+        author: {
+          select: { id: true, fullName: true, role: true, profileImage: true, headline: true },
+        },
+        applicants: {
+          include: {
+            student: {
+              select: { id: true, fullName: true, role: true, profileImage: true },
+            },
+          },
+        },
+      },
+    });
+
+    if (!post) {
+      return res.status(404).json({ message: "Collab post not found." });
+    }
+
+    res.json({
+      id: post.id,
+      title: post.title,
+      description: post.description,
+      projectStage: post.type,
+      skillsRequired: post.roles,
+      status: post.isActive ? "active" : "inactive",
+      authorId: post.authorId,
+      author: post.author,
+      applicants: post.applicants,
+      createdAt: post.createdAt,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

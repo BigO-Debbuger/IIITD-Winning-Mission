@@ -68,7 +68,7 @@ const PROBLEMS: ProblemItem[] = [
     symptom:
       'Early teams form based on casual social rapport rather than complementary execution skills, resulting in severe early-stage friction and high venture churn.',
     icon: Target,
-    status: '140+ Founder Cohorts Formed',
+    status: 'Complementary 4-Pillar Synergy',
     accent: '#0284C7',
     cta: 'Analyze Synergy \u2192',
     actionKey: 'co-founders',
@@ -98,7 +98,7 @@ const PROBLEMS: ProblemItem[] = [
     symptom:
       'Campus innovation grants and micro-funds require months of administrative red tape, starving promising builder prototypes before reaching their initial milestone.',
     icon: Zap,
-    status: '$150k+ Non-Dilutive Bounties',
+    status: 'External Foundation Grants',
     accent: 'var(--accent-violet)',
     cta: 'Browse Grants \u2192',
     actionKey: 'bounties',
@@ -172,7 +172,7 @@ export const ProblemSection: React.FC<ProblemSectionProps> = ({
         <Reveal>
           <div className="section-head">
             <span className="section-eyebrow">
-              <AlertCircle size={14} color="var(--accent-coral)" /> The Network Breakdown
+              The Network Breakdown
             </span>
             <h2 className="section-title">
               Why Traditional Professional Networks Fail.

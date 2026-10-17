@@ -116,7 +116,7 @@ export const getCofounderMatches = async (req, res) => {
       const bteProofCount = candidate.submissions.length;
       if (bteProofCount > 0) {
         gapSynergy += Math.min(25, bteProofCount * 10);
-        synergyFactors.push(`${bteProofCount} cryptographically verified Build-to-Earn proof(s) on-chain/ledger`);
+        synergyFactors.push(`${bteProofCount} verified Build-to-Earn proof(s) in review ledger`);
       }
 
       // Base score

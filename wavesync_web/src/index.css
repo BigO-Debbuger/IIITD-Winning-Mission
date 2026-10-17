@@ -627,8 +627,19 @@ button {
 }
 
 .opp-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px);
   box-shadow: var(--shadow-tactile-lg);
+}
+
+.opp-card-desc {
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  line-height: 1.55;
+  margin-bottom: 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .opp-meta-row {
@@ -975,6 +986,95 @@ button {
 @keyframes modalZoomIn {
   from { opacity: 0; transform: scale(0.96) translateY(12px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ==========================================================================
+   Slide-Over Drawer & Contextual Overlays (Progressive Disclosure)
+   ========================================================================== */
+.slide-over-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 2, 11, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1200;
+  display: flex;
+  justify-content: flex-end;
+  animation: modalFadeIn 0.2s ease forwards;
+}
+
+.slide-over-panel {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  height: 100%;
+  background: #FFFFFF;
+  border-left: 2px solid var(--border-strong);
+  box-shadow: -8px 0 36px rgba(5, 2, 11, 0.16);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: slideInRight 0.28s var(--ease-dropp) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.slide-over-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border-strong);
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: var(--shadow-tactile-sm);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.slide-over-close-btn:hover {
+  background: var(--accent-coral);
+  color: #FFFFFF;
+  transform: rotate(90deg);
+}
+
+.slide-over-header {
+  padding: 24px 28px;
+  border-bottom: 2px solid var(--border-strong);
+  background: var(--paper);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.slide-over-body {
+  padding: 28px;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.slide-over-footer {
+  padding: 18px 28px;
+  border-top: 2px solid var(--border-strong);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
 }
 
 /* ==========================================================================

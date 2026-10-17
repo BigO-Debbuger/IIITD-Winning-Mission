@@ -294,9 +294,15 @@ export const applyForJob = async (req, res) => {
   try {
     const jobId = req.params.id;
     const studentId = req.user.id;
+    const { coverLetter, resumeLink } = req.body || {};
 
-    if (req.user.role !== "student") {
-      return res.status(403).json({ message: "Only students can apply for jobs." });
+    const job = await prisma.job.findUnique({ where: { id: jobId } });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found." });
+    }
+
+    if (job.postedById === studentId) {
+      return res.status(400).json({ message: "You cannot apply to your own posting." });
     }
 
     const existingApp = await prisma.application.findUnique({
@@ -307,11 +313,6 @@ export const applyForJob = async (req, res) => {
 
     if (existingApp) {
       return res.status(400).json({ message: "You have already applied for this role." });
-    }
-
-    const job = await prisma.job.findUnique({ where: { id: jobId } });
-    if (!job) {
-      return res.status(404).json({ message: "Job not found." });
     }
 
     const student = await prisma.user.findUnique({
@@ -327,6 +328,8 @@ export const applyForJob = async (req, res) => {
         studentId,
         fitScore: aiAnalysis.fitScore,
         status: "applied",
+        coverLetter: coverLetter ? String(coverLetter).trim() : null,
+        resumeLink: resumeLink ? String(resumeLink).trim() : null,
       },
     });
 

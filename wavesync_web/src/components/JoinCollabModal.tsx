@@ -18,7 +18,8 @@ export const JoinCollabModal: React.FC<JoinCollabModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { isAuthenticated, openAuthModal } = useAuth();
+  const { isAuthenticated, openAuthModal, user } = useAuth();
+  const isOwner = Boolean(user && (collab?.author?.id === user.id || collab?.authorId === user.id));
   const [role, setRole] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,6 +33,11 @@ export const JoinCollabModal: React.FC<JoinCollabModalProps> = ({
     if (!isAuthenticated) {
       onClose();
       openAuthModal('login');
+      return;
+    }
+
+    if (isOwner) {
+      setError("You cannot join your own venture. To recruit co-founders, explore the Co-Founder matching engine.");
       return;
     }
 
@@ -176,6 +182,27 @@ export const JoinCollabModal: React.FC<JoinCollabModalProps> = ({
             />
           </div>
 
+          {isOwner && (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '12px 14px',
+                borderRadius: 'var(--radius-md)',
+                background: '#FEF3C7',
+                border: '1.5px solid #F59E0B',
+                color: '#92400E',
+                fontSize: '0.84rem',
+                fontWeight: 700,
+                marginBottom: 16,
+              }}
+            >
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>You created this venture. To find candidates, use the Co-Founder matching engine.</span>
+            </div>
+          )}
+
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
             <button
               type="button"
@@ -190,7 +217,7 @@ export const JoinCollabModal: React.FC<JoinCollabModalProps> = ({
               type="submit"
               className="btn btn-coral"
               style={{ minHeight: 42, padding: '0 24px' }}
-              disabled={loading}
+              disabled={loading || isOwner}
             >
               {loading ? (
                 <>

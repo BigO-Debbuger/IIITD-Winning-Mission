@@ -6,7 +6,8 @@ import {
   getActivePosts,
   getMyPosts,
   toggleStatus,
-  applyToPost
+  applyToPost,
+  getPostById,
 } from '../controllers/collabController.js';
 
 const router = express.Router();
@@ -18,6 +19,7 @@ router.route('/')
 
 router.get('/active', getActivePosts);          // Active posts for Explore feed
 router.get('/mine', protect, getMyPosts);       // Get my posts + applicants
+router.get('/:id', getPostById);                 // Get single post by ID
 router.put('/:id/toggle', protect, toggleStatus); // Toggle Active/Inactive status
 router.post('/:id/apply', protect, applyToPost);  // Apply to a specific post
 
