@@ -1,0 +1,55 @@
+name: Release ReferLoom APK
+
+on:
+  push:
+    tags:
+      - 'v*' # This triggers the workflow when you push a tag like v1.0.0
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to create the GitHub Release page
+
+    steps:
+      - name: 1. Checkout Code
+        uses: actions/checkout@v4
+
+      - name: 2. Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 3. Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          packager: npm
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: 4. Install Dependencies
+        working-directory: ./referloom_fixed
+        run: npm install
+
+      - name: 5. Build Android APK via EAS
+        working-directory: ./referloom_fixed
+        env:
+          NODE_NO_WARNINGS: 1 # This hides the punycode warning so it doesn't break our JSON parser
+        run: |
+          # 1. Trigger the cloud build and wait for it to finish
+          eas build --platform android --profile production --non-interactive --wait
+          
+          # 2. Fetch the ID of the build that just finished
+          BUILD_ID=$(eas build:list --platform android --status finished --limit 1 --json --non-interactive | jq -r '.[0].id')
+          
+          # 3. Extract the exact download URL for that specific build
+          APK_URL=$(eas build:view $BUILD_ID --json | jq -r '.artifacts.buildUrl')
+          
+          # 4. Download the file and name it ReferLoom.apk
+          wget "$APK_URL" -O ./ReferLoom.apk
+
+      - name: 6. Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./referloom_fixed/ReferLoom.apk
+          generate_release_notes: true

@@ -1,0 +1,20 @@
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+package-lock.json.bak
+
+# Uploads and temporary files
+uploads/
+scratch/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+/referloom_backend/node_modules/
+/referloom_fixed/node_modules/
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Environment Variables
+.env
+!.env.example
+.env*.local
+
+# Expo & Metro
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+.metro-health-check*
+
+# TypeScript
+*.tsbuildinfo
+
+# macOS/OS artifacts
+.DS_Store
+*.pem
+
+# Native App builds (Keep these only if you are using Expo Go exclusively)
+/ios
+/android
+
+# Secrets & Keys
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Misc
+app-example/
+coverage/
