@@ -593,4 +593,4 @@ The platform features continuous real-time telemetry across PostgreSQL, Express 
 ## License & Institutional Context
 
 WaveSync was engineered for the **IIITD Winning Mission** initiative under **Problem Statement 2: Entrepreneurship & Employment**. All cryptographic signing routines and architecture specifications adhere to reproducible open-source software practices.
-..
+
