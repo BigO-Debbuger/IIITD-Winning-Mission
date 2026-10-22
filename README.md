@@ -594,3 +594,19 @@ The platform features continuous real-time telemetry across PostgreSQL, Express 
 
 WaveSync was engineered for the **IIITD Winning Mission** initiative under **Problem Statement 2: Entrepreneurship & Employment**. All cryptographic signing routines and architecture specifications adhere to reproducible open-source software practices.
 
+
+## Repository Layout
+
+The following entries are present at the repository root:
+
+- `.github` — directory.
+- `images` — directory.
+- `wavesync_backend` — directory.
+- `wavesync_fixed` — directory.
+- `wavesync_web` — directory.
+- `.gitignore` — file.
+- `PROJECT_STATUS.md` — file.
+- `README.md` — file.
+
+<!-- This list is generated from the repository root; review it when the layout changes. -->
+
